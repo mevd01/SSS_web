@@ -1,0 +1,31 @@
+.account{
+    margin: 50px 150px 220px;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.account_info_box{
+    border-left: solid 1px black;
+}
+.account_info_box > div{
+    width: 400px;
+    border-bottom: solid 1px black;
+}
+.account > div > div{
+    margin: 0 20px 30px;
+
+    font-size: 25px;
+}
+
+.account_features{
+    border-right: solid 1px black;
+    text-align: right;
+
+    width: 40%;
+    height: 400px;
+}
+span{
+    margin-left: 20px;
+    font-size: 30px;
+}

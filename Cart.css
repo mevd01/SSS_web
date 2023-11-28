@@ -1,0 +1,27 @@
+.cart_window{
+    transition: 0.4s ease-out;
+    z-index: 200;
+    position: fixed;
+    right: 0px;
+    top: 0px;
+
+    background-color: rgba(220, 220, 250, 0.95);
+
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+}
+
+#close_cart{
+    width: 40px;
+    line-height: 40px;
+    text-align: center;
+    align-items: center;
+    cursor: pointer;
+}
+.cart_h1{
+    margin: 15px 15px 35px;
+    font-size: 30px;
+    font-weight: 400;
+}
+
