@@ -5,6 +5,7 @@ import os
 import string
 from PIL import Image, ImageDraw, ImageFont
 from rest_framework.decorators import api_view
+import datetime as dt
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 import re
@@ -23,7 +24,6 @@ def users_list(request):
         db = sqlite3.connect('local_db.db', check_same_thread=False)
         sql = db.cursor()
 
-
         if request.data.get('oper') == 'user_exist':  # проверяем, зарегестрирован ли пользователь  ('mail':'x') ->{'exist':true/false}
             arr = User.objects.all()
             ans = 0
@@ -34,17 +34,15 @@ def users_list(request):
                     break
             return Response({'exist': ans})
 
-
         elif request.data.get('oper') == 'get_cost_by_id_and_size':  # регистрируем пользователя, ('mail':x,'password':x) -> None
             id = request.data.get('id')
             size = request.data.get('size')
             sizes = sql.execute(f"SELECT * FROM sizes WHERE id = '{id}'").fetchone()
             for i in sizes[1].split(';'):
-                sz,cost = i.split(',')
-                if(str(sz) == str(size)):
-                    return Response({'cost':cost})
+                sz, cost = i.split(',')
+                if (str(sz) == str(size)):
+                    return Response({'cost': cost})
             return Response()
-
 
         elif request.data.get('oper') == 'reg_user':  # регистрируем пользователя, ('mail':x,'password':x) -> None
             mail = request.data.get('mail')
@@ -64,7 +62,6 @@ def users_list(request):
                 return Response({'answer': '3', 'msg': "ok"})
             else:
                 return Response({'answer': '1', 'msg': 'incorrect text'})
-            return Response({'answer': '3', 'msg': "ok"})
 
         elif request.data.get('oper') == 'create_captcha':  # создаём капчу ('mail':x) -> 1/2/3
             words = ["шузы", "ньюрок", "джазик", "бебра", "трэвис", 'боты', 'пися', 'попа']
@@ -134,7 +131,6 @@ def users_list(request):
             '''   Проверяем капчу ('user_input':'x','photo':x) -> 'ans':true/false   '''
             user_input = request.data.get('user_input')
             photo = request.data.get('photo')
-            print(user_input, photo)
             return Response({'ans': bool(
                 sql.execute(f"SELECT * FROM 'captcha' WHERE direct='{photo}' AND key='{user_input}'").fetchall())})
 
@@ -179,7 +175,67 @@ def users_list(request):
         elif request.data.get('oper') == 'clicked_tov_with_id':
             '''Добавляет в базу данных количество к популярности товара '''
             sql.execute(f"UPDATE items SET popular+1 WHERE id='{request.data.get('id')}'")
+            article = sql.execute(f"SELECT * FROM items WHERE id='{request.data.get('id')}'").fetchone()
+            sql.execute(f"INSERT INTO update ('article','date_time_ask') VALUES ('{article}','{dt.datetime.now()}')")
+            db.commit()
             return Response()
+
+        elif request.data.get('oper') == 'add_in_busket':
+            '''По Id товара, размеру и почте добавляем в локальную БД заказ к пользователю'''
+            slov = request.data
+            tov_id = slov.get('id')
+            size_of = slov.get('size')
+            mail = slov.get('mail')
+            sql.execute(f"INSERT INTO baskets ('mail','tov_id','size') VALUES ('{mail}','{tov_id}','{size_of}')")
+            db.commit()
+            return Response()
+
+        elif request.data.get('oper') == 'get_busket':
+            ''' По почте возвращает список id и размера добавленного в корзину товара'''
+            mail = request.data.get('mail')
+            ans = {'ans': []}
+            for info in sql.execute(f"SELECT * FROM baskets WHERE mail='{mail}'").fetchall():
+                ans['ans'].append([info[1], info[2]])
+            return Response(ans)
+
+        elif request.data.get('oper') == 'get_cost_by_id_and_size':
+            ''' Возвращаем цену товара по его id и size '''
+            tov_id = request.data.get('id')
+            size_of = request.data.get('size')
+            sizes = sql.execute(f"SELECT * FROM sizes WHERE id='{tov_id}'").fetchone()
+            for size, cost in sizes.split(';'):
+                if size == size_of:
+                    return Response({'cost': cost})
+
+        elif request.data.get('oper') == 'add_like':
+            '''Добавляет товар в избранное'''
+            slov = request.data
+            tov_id = slov.get('id')
+            mail = slov.get('mail')
+            sql.execute(f"INSERT INTO likes ('mail','tov_id','date') VALUES ('{mail}','{tov_id}','{dt.datetime.now()}')")
+            db.commit()
+            return Response()
+
+        elif request.data.get('oper') == 'is_liked':
+            '''добавлен ли товар с таким id в избранное'''
+            slov = request.data
+            tov_id = slov.get('id')
+            mail = slov.get('mail')
+            return Response({'ans':bool(sql.execute(f"SELECT * FROM likes WHERE id='{tov_id}'").fetchone())})
+
+        elif request.data.get('oper') == 'liked_list':
+            '''добавлен ли товар с таким id в избранное'''
+            slov = request.data
+            mail = slov.get('mail')
+            arr = sql.execute(f"SELECT * FROM likes WHERE mail='{mail}'").fetchall()
+            tmp = []
+            for i in arr:
+                tmp.append(i)
+            tmp.sort(key=lambda x: dt.datetime.strptime(str(x[2]), '%Y-%m-%d %H:%M:%S.%f'), reverse=True)
+            for i in range(len(tmp)):
+                tmp[i] = tmp[i][2]
+            return Response({'ans':tmp})
+
 
 
         if request.method == 'GET':
