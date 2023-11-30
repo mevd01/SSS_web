@@ -1,0 +1,66 @@
+.login_part, .signin_part{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    margin: 100px auto;
+}
+form > div{
+    display: flex;
+    align-items: center;
+
+    position: relative;
+    left: 12px;
+}
+.alert_radio{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: green;
+
+    position: relative;
+    top: 19px;
+    left: 10px;
+}
+input{
+    margin-top: 40px;
+    width: 400px;
+}
+.but{
+    margin-top: 40px;
+    line-height: 40px;
+    width: 400px;
+
+    text-align: center;
+    border: solid 1px black;
+}
+
+
+
+.captcha{
+    position: fixed;
+    top: 230px;
+    left: 35%;
+
+    background-color: white;
+    border: 1px solid black;
+}
+.captcha > h1{
+    margin: 10px 10px;
+}
+.captcha > div{
+    width: 400px;
+    margin: 10px 20px;
+}
+.captcha > div > img{
+    width: 100%;
+}
+.captcha > div > button{
+    margin: 10px 20px 0;
+    width: 100%;
+}
+.cap_but_box{
+    display: flex;
+    justify-content: space-between;
+}
