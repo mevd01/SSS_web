@@ -10,6 +10,7 @@ function ProductPage(props){
     const[availSize, setAvailSize] = useState('');
     const[availQuant, setAvailQuant] = useState(1);
     const[availPrice, setAvailPrice] = useState('');
+    const[checked, setChecked] = useState('none_liked');
 
     const location = useLocation();
     const params = new URLSearchParams(location.search);
@@ -38,6 +39,17 @@ function ProductPage(props){
         requestProd();
     }, [paramValue])
 
+
+
+
+
+    function AddToFavorite(){
+        if(checked == 'liked'){
+            setChecked('none_liked')   //!!!! Надо как-то передавать сердечки в страницу каталога Возможно опросто проверять с записанными заранее значениями при выводе товара
+        }else{
+            setChecked('liked')
+        }
+    }
 
     function moveLeft(){
         var element = document.getElementById('gal')
@@ -127,6 +139,7 @@ function ProductPage(props){
                         <div className="left" onClick={moveLeft}>&lt;</div>
                         <div className="right" onClick={moveRight}>&gt;</div>
                     </div>
+                    <div className={"favorite_icon_in_page " + checked} onClick={() => {AddToFavorite()}}></div>
                 </div>
                 <div className="main_info_box">
                     <div className="price">{availPrice}</div>

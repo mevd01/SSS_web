@@ -8,12 +8,12 @@ import Catalog from "../Parts/Catalog";
 
 function CatalogPage(){
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-    const [columnsCount, setColumnsCount] = useState(1); // начальное количество колонок
-    const[columnsWidth, setColumnsWidth] = useState(100 + '%');
+    // const [columnsCount, setColumnsCount] = useState(1); // начальное количество колонок
 
     const[nextProd, setNextProd] = useState({id:1, name:'', brand:'', price:'', description:'', imgsrc:''})
     const[prods, setProds] = useState([])
     
+    var columnsCount = 1
     var oldpos = 0;
     var topPos = 0;
     var catpos = 1;
@@ -89,16 +89,12 @@ function CatalogPage(){
         window.addEventListener('resize', handleResize);
         if(windowWidth <= 400){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(1, 100%)'
-            alert(document.getElementById('catalog').style.gridTemplateColumns)
         }else if(windowWidth > 400 && windowWidth <= 600){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(2, 50%)'
-            alert(document.getElementById('catalog').style.gridTemplateColumns)
         }else if(windowWidth > 600 && windowWidth <= 800){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(3, 33,3%)'
-            alert(document.getElementById('catalog').style.gridTemplateColumns)
         }else if(windowWidth > 800 && windowWidth <= 1200){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(4, 25%)'
-            alert(document.getElementById('catalog').style.gridTemplateColumns)
         }
         fillCatalog()
         
@@ -108,18 +104,20 @@ function CatalogPage(){
     }, []);
 
     useEffect(() => {
-      if(windowWidth <= 400){
-        setColumnsCount(1);
-      }else if(windowWidth > 400 && windowWidth <= 600){
-        setColumnsCount(2);
-      }else if(windowWidth > 600 && windowWidth <= 800){
-        setColumnsCount(3);
-      }else if(windowWidth > 800 && windowWidth <= 1200){
-        setColumnsCount(4);
-      }
-      setColumnsWidth(100 / columnsCount + '%') // вычисляем ширину колонки в процентах
-      document.getElementById('catalog').style.gridTemplateColumns = 'repeat(' + columnsCount + ', ' + columnsWidth + ')'
-      alert('repeat(' + windowWidth + ', ' + columnsCount + ', ' + columnsWidth + ')')
+        if(windowWidth <= 400){
+            columnsCount = 1
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(1, 100%)'
+        }else if(windowWidth > 400 && windowWidth <= 600){
+            columnsCount = 2
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(2, 50%)'
+        }else if(windowWidth > 600 && windowWidth <= 800){
+            columnsCount = 3
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(3, 33,33%)'
+        }else if(windowWidth > 800 && windowWidth <= 1200){
+            columnsCount = 4
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(4, 25%)'
+        }
+      
     }, [windowWidth]);
 
 
@@ -131,7 +129,7 @@ function CatalogPage(){
             oldpos += document.getElementById('catalog').children[0].clientHeight + 30
             ++topPos
 
-            if(document.getElementById('catalog').children.length - topPos < 3){
+            if(document.getElementById('catalog').children.length/columnsCount - topPos < 3){
                 alert('yeah')
                 fillCatalog()
             }
@@ -175,7 +173,7 @@ function CatalogPage(){
             </select>
             </div>
             <Catalog prods={prods}/>
-            <div id='to_top' onClick={tpToTop}>&lt;</div>
+            <div id='to_top' onClick={tpToTop}></div>
         </>
     )
 }
