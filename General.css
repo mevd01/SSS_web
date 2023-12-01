@@ -57,10 +57,11 @@ header{
     z-index: 100;
 }
 .menu_icon{
-    background-image: url(../img/icons/sss_icon.png);
-    background-size: 60px;
+    background-image: url(../img/svg/menu.svg);
+    background-size: 35px;
+    cursor: pointer;
 
-    margin-left: 20px;
+    margin-left: 5px;
 
     width: 60px;
     height: 60px;
@@ -76,13 +77,13 @@ header{
     color: white;
 }
 .cart_icon{
+    background-image: url(../img/svg/cart.svg);
+    background-size: 35px;
     cursor: pointer;
 
-    margin-right: 20px;
-    font-size: 12px;
-    line-height: 30px;
-
-    height: 30px;
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
 }
 
 
@@ -93,12 +94,14 @@ header{
     bottom: -50px;
     right: 25px;
 
-    text-align: center;
-    line-height: 50px;
+    height: 50px;
     width: 50px;
     border-radius: 50%;
 
     background-color: black;
+    background-image: url(../img/svg/next_white.svg);
+    background-size: 23px;
+
     color: white;
     font-size: 28px;
     transform: rotate(90deg);

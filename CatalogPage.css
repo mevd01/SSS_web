@@ -55,6 +55,7 @@ main > h1{
 
 
 
+
 .prod_mini{
     height: auto;
 
@@ -68,6 +69,37 @@ main > h1{
     width: 100%;
     height: auto;
 }
+
+
+.liked{
+    background-image: url(../img/svg/red-heart-icon.svg);
+}
+.none_liked{
+    background-image: url(../img/svg/favorite_FILL0_wght400_GRAD0_opsz24.svg);
+}
+.favorite_icon_in_cat{
+    width: 40px;
+    height: 40px;
+
+    background-size: 27px;
+    margin: 0 0 0 auto;
+
+    position: relative;
+    top: 55px;
+    right: 15px;
+}
+.favorite_icon_in_page{
+    width: 60px;
+    height: 60px;
+
+    background-size: 40px;
+
+    position: absolute;
+    top: 70px;
+    right: 20px;
+}
+
+
 .prod_tags{
     margin: 0 10px;
     display: flex;
