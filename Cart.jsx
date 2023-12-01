@@ -38,7 +38,7 @@ function Cart({permit, prods, closeCart, remove, requant}){
 
     return(
         <div className="cart_window" id='cart'>
-            <div id="close_cart" onClick={() => {closeCart(false)}}>X</div>
+            <div id="close_cart" onClick={() => {closeCart(false)}}></div>
             <h1 className="cart_h1">Корзина:</h1>
             {prods.map((prod) =>
                 <InCartProd prod={prod} remove={remove} requant={requant}/>
