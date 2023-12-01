@@ -10,9 +10,12 @@ import LoginPage from "./components/Pages/LoginPage";
 import Header from './components/Parts/Header';
 import CatalogPage from './components/Pages/CatalogPage';
 import Cart from './components/Parts/Cart';
+import Menu from './components/Parts/Menu';
 
 function App() {
-    const[permit, setPermit] = useState(false);
+    const[cartPermit, setCartPermit] = useState(false);
+    const[menuPermit, setMenuPermit] = useState(false);
+
     const[addedProds, setAddedProds] = useState([]);
 
     async function addToCart(newProd){
@@ -39,7 +42,7 @@ function App() {
 
     return (
         <BrowserRouter>
-            <Header openCart={setPermit}/>
+            <Header openCart={setCartPermit} openMenu={setMenuPermit}/>
 
             <main>
                 <Routes>
@@ -47,13 +50,14 @@ function App() {
                     <Route path="/registr" element={<LoginPage />} />
                     <Route path="/catalog" element={<CatalogPage />} />
                     <Route path="/account" element={<AccountPage />} />
-                    <Route path="/product" element={<ProductPage create={addToCart} permit={setPermit} />} />
+                    <Route path="/product" element={<ProductPage create={addToCart} permit={setCartPermit} />} />
                     <Route path="*" element={<MainPage />} />
                 </Routes>
             </main>
 
             
-            <Cart permit={permit} prods={addedProds} closeCart={setPermit} remove={removeProd} requant={requant}/>
+            <Cart permit={cartPermit} prods={addedProds} closeCart={setCartPermit} remove={removeProd} requant={requant}/>
+            <Menu permit={menuPermit} closeMenu={setMenuPermit}/>
 
             <footer>
                 Футер)
