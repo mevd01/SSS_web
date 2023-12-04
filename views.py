@@ -172,7 +172,7 @@ def users_list(request):
             arr = sql.execute(f"SELECT * FROM items WHERE id='{request.data.get('id')}'").fetchone()
             if not (arr):
                 return Response({'answer': 0})
-            slov = {'answer': 1, 'description': arr[1].split(';')[1], 'name': arr[1].split(';')[0], 'brand': arr[3],
+            slov = {'answer': 1, 'description': arr[-2], 'name': arr[1], 'brand': arr[3],
                     'price': arr[4]}
             folder_path = f'../frontend/public/img/item_photos/{arr[6]}'
             files = os.listdir(folder_path)
