@@ -3,14 +3,19 @@ import random
 import sqlite3
 import os
 import string
+import smtplib
+from email.header import Header
+from email.mime.text import MIMEText
 from PIL import Image, ImageDraw, ImageFont
 from rest_framework.decorators import api_view
 import datetime as dt
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 import re
-from .models import User
-from .serializers import UserSerializer
+
+
+# from .models import User
+# from .serializers import UserSerializer
 
 
 def home(request):
@@ -24,17 +29,27 @@ def users_list(request):
         db = sqlite3.connect('local_db.db', check_same_thread=False)
         sql = db.cursor()
 
-        if request.data.get('oper') == 'user_exist':  # проверяем, зарегестрирован ли пользователь  ('mail':'x') ->{'exist':true/false}
-            arr = User.objects.all()
-            ans = 0
-            m = request.data.get('mail')
-            for i in arr:
-                if i.mail == m:
-                    ans = 1
-                    break
-            return Response({'exist': ans})
+        if request.data.get('oper') == 'user_exist':
+            '''проверяем, зарегестрирован ли пользователь  ('mail':'x') ->{'exist':true/false}'''
+            return Response(
+                {'exist': bool(sql.execute(f"SELECT * FROM users WHERE mail='{request.data.get('mail')}'").fetchone())})
 
-        elif request.data.get('oper') == 'get_cost_by_id_and_size':  # регистрируем пользователя, ('mail':x,'password':x) -> None
+        elif request.data.get('oper') == 'reg_user':
+            '''регистрируем пользователя, ('mail':x,'password':x) -> None'''
+            mail = request.data.get('mail')
+            pwrd = request.data.get('password')
+            sql.execute(
+                f"INSERT INTO users ('mail','password','date') VALUES ('{mail}','{pwrd}','{dt.datetime.now()}')")
+            db.commit()
+            return Response()
+
+        elif request.data.get('oper') == 'update_password':
+            '''Обновляет пароль для пользователя с почтой mail '''
+            sql.execute(f"UPDATE users SET password='{request.data.get('new_pswrd')}' WHERE mail='{request.data.get('mail')}'")
+            return Response({'ok':1})
+
+        elif request.data.get('oper') == 'get_cost_by_id_and_size':
+            '''регистрируем пользователя, ('mail':x,'password':x) -> None'''
             id = request.data.get('id')
             size = request.data.get('size')
             sizes = sql.execute(f"SELECT * FROM sizes WHERE id = '{id}'").fetchone()
@@ -44,26 +59,19 @@ def users_list(request):
                     return Response({'cost': cost})
             return Response()
 
-        elif request.data.get('oper') == 'reg_user':  # регистрируем пользователя, ('mail':x,'password':x) -> None
+        elif request.data.get('oper') == 'check_correct_mail':
+            ''' проверям корректность введённой почты, ('mail':x) -> 1/2/3'''
             mail = request.data.get('mail')
-            pwrd = request.data.get('password')
-            todo = User.objects.create(mail=mail, password=pwrd)
-            serializer = UserSerializer(todo, many=False)
-            return Response(serializer.data)
-
-        elif request.data.get('oper') == 'check_correct_mail':  # проверям корректность введённой почты, ('mail':x) -> 1/2/3
-            mail = request.data.get('mail')
-            arr = User.objects.all()
             pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
             if re.match(pattern, mail) and len(mail) != '':
-                for i in arr:
-                    if i.mail == mail:
-                        return Response({'answer': '2', 'msg': 'already_in'})
+                if bool(sql.execute(f"SELECT * FROM users WHERE mail='{request.data.get('mail')}'").fetchone()):
+                    return Response({'answer': '2', 'msg': 'already_in'})
                 return Response({'answer': '3', 'msg': "ok"})
             else:
                 return Response({'answer': '1', 'msg': 'incorrect text'})
 
-        elif request.data.get('oper') == 'create_captcha':  # создаём капчу ('mail':x) -> 1/2/3
+        elif request.data.get('oper') == 'create_captcha':
+            '''создаём капчу ('mail':x) -> 1/2/3'''
             words = ["шузы", "ньюрок", "джазик", "бебра", "трэвис", 'боты', 'пися', 'попа']
 
             # путь к папке с изображениями
@@ -190,6 +198,16 @@ def users_list(request):
             db.commit()
             return Response()
 
+        elif request.data.get('oper') == 'delete_from_busket ':
+            '''По Id товара, размеру и почте удаляет из локальной БД заказ у пользователя'''
+            slov = request.data
+            tov_id = slov.get('id')
+            size_of = slov.get('size')
+            mail = slov.get('mail')
+            sql.execute(f"DELETE FROM baskets WHERE mail='{mail}' AND size='{size_of}' AND tov_id='{tov_id}'")
+            db.commit()
+            return Response()
+
         elif request.data.get('oper') == 'get_busket':
             ''' По почте возвращает список id и размера добавленного в корзину товара'''
             mail = request.data.get('mail')
@@ -212,7 +230,8 @@ def users_list(request):
             slov = request.data
             tov_id = slov.get('id')
             mail = slov.get('mail')
-            sql.execute(f"INSERT INTO likes ('mail','tov_id','date') VALUES ('{mail}','{tov_id}','{dt.datetime.now()}')")
+            sql.execute(
+                f"INSERT INTO likes ('mail','tov_id','date') VALUES ('{mail}','{tov_id}','{dt.datetime.now()}')")
             db.commit()
             return Response()
 
@@ -221,7 +240,7 @@ def users_list(request):
             slov = request.data
             tov_id = slov.get('id')
             mail = slov.get('mail')
-            return Response({'ans':bool(sql.execute(f"SELECT * FROM likes WHERE id='{tov_id}'").fetchone())})
+            return Response({'ans': bool(sql.execute(f"SELECT * FROM likes WHERE id='{tov_id}'").fetchone())})
 
         elif request.data.get('oper') == 'liked_list':
             '''добавлен ли товар с таким id в избранное'''
@@ -234,10 +253,41 @@ def users_list(request):
             tmp.sort(key=lambda x: dt.datetime.strptime(str(x[2]), '%Y-%m-%d %H:%M:%S.%f'), reverse=True)
             for i in range(len(tmp)):
                 tmp[i] = tmp[i][2]
-            return Response({'ans':tmp})
+            return Response({'ans': tmp})
+
+        elif request.data.get('oper') == 'delete_like ':
+            '''Удаляет товар из избранного'''
+            slov = request.data
+            tov_id = slov.get('id')
+            mail = slov.get('mail')
+            sql.execute(f"DELETE FROM likes WHERE mail='{mail}' AND tov_id='{tov_id}'")
+            db.commit()
+            return Response()
+
+        elif request.data.get('oper') == 'send_apply_mail':
+            '''Отправляет пользователю сообщение на почту для подтверждения почты'''
+            slov = request.data
+            mail = slov.get('mail')
+            sql.execute(f"DELETE FROM mail_accept WHERE mail='{mail}'").fetchall()
+            letters = string.ascii_letters
+            code = ''.join(random.choice(letters) for i in range(15))
+            sql.execute(f"INSERT INTO mail_accept ('mail','code') VALUES ('{mail}','{code}')")
+            db.commit()
+
+        elif request.data.get('oper') == 'check_correct_mail':
+            '''Отправляет пользователю сообщение на почту для подтверждения почты'''
+            slov = request.data
+            return Response({'ans': bool(sql.execute(
+                f"SELECT * FROM mail_accept WHERE mail='{slov.get('mail')}' AND code='{slov.get('code')}'").fetchone())})
+
+        elif request.data.get('oper') == 'check_sign_in_user':
+            '''Проверяет корректность пароля и почты для входа в ЛК'''
+            slov = request.data
+            return Response({'ans': bool(sql.execute(
+                f"SELECT * FROM mail_accept WHERE mail='{slov.get('mail')}' AND password='{slov.get('password')}'").fetchone())})
 
 
 
-        if request.method == 'GET':
-            serializer = UserSerializer(User.objects.all(), many=True)
-            return Response(serializer.data)
+        # if request.method == 'GET':
+        #     serializer = UserSerializer(User.objects.all(), many=True)
+        #     return Response(serializer.data)
