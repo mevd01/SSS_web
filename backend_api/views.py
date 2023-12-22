@@ -12,6 +12,10 @@ import datetime as dt
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 import re
+import requests as req
+
+chat_ids = ['811073879', '1047465317']
+tok = '6829204293:AAH1WWHLUaTtwHyZ8oFnyZNkYHxzQGnvNyo'
 
 
 # from .models import User
@@ -45,8 +49,9 @@ def users_list(request):
 
         elif request.data.get('oper') == 'update_password':
             '''Обновляет пароль для пользователя с почтой mail '''
-            sql.execute(f"UPDATE users SET password='{request.data.get('new_pswrd')}' WHERE mail='{request.data.get('mail')}'")
-            return Response({'ok':1})
+            sql.execute(
+                f"UPDATE users SET password='{request.data.get('new_pswrd')}' WHERE mail='{request.data.get('mail')}'")
+            return Response({'ok': 1})
 
         elif request.data.get('oper') == 'get_cost_by_id_and_size':
             '''регистрируем пользователя, ('mail':x,'password':x) -> None'''
@@ -240,7 +245,8 @@ def users_list(request):
             slov = request.data
             tov_id = slov.get('id')
             mail = slov.get('mail')
-            return Response({'ans': bool(sql.execute(f"SELECT * FROM likes WHERE tov_id='{tov_id}' AND mail='{mail}'").fetchone())})
+            return Response(
+                {'ans': bool(sql.execute(f"SELECT * FROM likes WHERE tov_id='{tov_id}' AND mail='{mail}'").fetchone())})
 
         elif request.data.get('oper') == 'liked_list':
             '''добавлен ли товар с таким id в избранное'''
@@ -293,8 +299,10 @@ def users_list(request):
             arr = [0] * len(a)
             for i in range(len(a)):
                 arr[i] = str(a[i])
-            
-            return Response({'name': arr[3],'surname':arr[4],'age':arr[5],'net':arr[6],'phone':arr[7],'address':arr[8],'postcode':arr[9]})
+
+            return Response(
+                {'name': arr[3], 'surname': arr[4], 'age': arr[5], 'net': arr[6], 'phone': arr[7], 'address': arr[8],
+                 'postcode': arr[9]})
 
         elif request.data.get('oper') == 'set_account_info_by_mail':
             '''Записывает всю информацию о аккаунте по названию почты(имя, фамилию, возраст, адрес, вк/тг?? '''
@@ -311,6 +319,51 @@ def users_list(request):
             db.commit()
             return Response()
 
+
+        elif request.data.get('oper') == 'set_account_info_by_mail':
+            '''Записывает всю информацию о аккаунте по названию почты(имя, фамилию, возраст, адрес, вк/тг?? '''
+            sql.execute(f"UPDATE users SET name='{request.data.get('name')}' WHERE mail='{request.data.get('mail')}'")
+            sql.execute(
+                f"UPDATE users SET surname='{request.data.get('surname')}' WHERE mail='{request.data.get('mail')}'")
+            sql.execute(f"UPDATE users SET age='{request.data.get('age')}' WHERE mail='{request.data.get('mail')}'")
+            sql.execute(f"UPDATE users SET net='{request.data.get('net')}' WHERE mail='{request.data.get('mail')}'")
+            sql.execute(f"UPDATE users SET phone='{request.data.get('phone')}' WHERE mail='{request.data.get('mail')}'")
+            sql.execute(
+                f"UPDATE users SET address='{request.data.get('address')}' WHERE mail='{request.data.get('mail')}'")
+            sql.execute(
+                f"UPDATE users SET postcode='{request.data.get('postcode')}' WHERE mail='{request.data.get('mail')}'")
+            db.commit()
+            return Response()
+
+        elif request.data.get('oper') == 'set_account_info_by_mail':
+            '''Отправляет все данные о пользователе и о заказе на сервер, присваивая ему номер '''
+            slov = request.data
+            mail, name, surname, net, phone, address, postcode = slov.get('mail'), slov.get('name'), slov.get(
+                'surname'), slov.get('net'), slov.get('phone'), slov.get('address'), slov.get('postcode')
+            text = f'''
+Новый заказ!!!
+Почта -  {mail}
+
+Имя - {name}
+
+Фамилия - {surname}
+
+Соц.Сеть - {net}
+
+Телефон - {phone}
+
+Адрес - {address}
+
+Почтовый индекс - {postcode}
+
+'''
+            for chat_id in chat_ids:
+                response = req.post(
+                    url='https://api.telegram.org/bot{0}/{1}'.format(tok, 'sendMessage'),
+                    data={'chat_id': chat_id, 'text': text}
+                ).json()
+
+            return Response()
 
         # if request.method == 'GET':
         #     serializer = UserSerializer(User.objects.all(), many=True)
