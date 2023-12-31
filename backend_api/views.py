@@ -11,15 +11,16 @@ from rest_framework.decorators import api_view
 import datetime as dt
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import re
-import requests as req
-
-chat_ids = ['811073879', '1047465317']
-tok = '6829204293:AAH1WWHLUaTtwHyZ8oFnyZNkYHxzQGnvNyo'
-
 
 # from .models import User
 # from .serializers import UserSerializer
+TOK = "6829204293:AAH1WWHLUaTtwHyZ8oFnyZNkYHxzQGnvNyo"
+admins = []
+
 
 
 def home(request):
@@ -77,8 +78,6 @@ def users_list(request):
 
         elif request.data.get('oper') == 'create_captcha':
             '''создаём капчу ('mail':x) -> 1/2/3'''
-            words = ["шузы", "ньюрок", "джазик", "бебра", "трэвис", 'боты', 'пися', 'попа']
-
             # путь к папке с изображениями
             img_folder = "media/img"
 
@@ -86,7 +85,6 @@ def users_list(request):
             output_folder = "../frontend/public/img/captcha"
 
             # выбираем случайное слово из списка
-            random_word = random.choice(words)
 
             # получаем список файлов в папке с изображениями
             img_files = os.listdir(img_folder)
@@ -97,32 +95,30 @@ def users_list(request):
             # открываем выбранное изображение
             img = Image.open(os.path.join(img_folder, random_img))
 
-            # добавляем текст на изображение в случайном месте и с углом
             draw = ImageDraw.Draw(img)
-            font_size = 50
-            font = ImageFont.truetype("arial.ttf", font_size)  # замените на путь к файлу шрифта и размер шрифта
 
-            # Получаем размер текста
-            text_width, text_height = font_size + 10, font_size * len(random_word) + 10
+            # Загружаем шрифт
+            font = ImageFont.truetype('arial_bold.ttf', 70)
 
-            # определяем размеры изображения
-            image_width, image_height = img.size
 
-            # выбираем случайные координаты для размещения текста
-            x = random.randint(0, image_width - text_width)
-            y = random.randint(0, image_height - text_height)
+            w,h = 350,100
+            rand_x = random.randint(50,200)
+            rand_y = random.randint(50,420)
 
-            # выбираем случайный угол поворота текста (в пределах читаемости)
-            # angle = random.randint(-30, 30)
-            angle = -20
-            # добавляем текст на изображение
-            draw.text((x, y), random_word, (255, 0, 0), font=font,
-                      angle=-45)  # координаты, цвет текста и угол поворота
+            # Добавляем текст на изображение
+            symbols = 'qwertyuiopasdfghjklzxcvbnm1234567890'
+            text = ''.join([random.choice(symbols).upper() for _ in range(5)])
+            random_word = text
+            colors = [(255, 192, 203),(255, 187, 153),(192, 255, 193),(173, 216, 230),(221, 160, 221),(152, 251, 152)]
+            draw.text((rand_x, rand_y), text, fill=random.choice(colors), font=font)
+            for _ in range(2):
+                draw.line([(rand_x+5,rand_y+random.randint(0,65) + 15),(rand_x+240+5,rand_y+random.randint(0,65) + 15)],(255,255,255),6)
 
             # сохраняем измененное изображение в другую папку
             def generate_random_string(length):
                 letters = string.ascii_lowercase
                 return ''.join(random.choice(letters) for _ in range(length))
+
 
             # путь к папке, где будем проверять наличие файла
             folder_path = '../frontend/public/img/captcha'
@@ -136,16 +132,17 @@ def users_list(request):
             random_string += '.jpg'
             output_path = folder_path + '/' + random_string
             img.save(output_path)
-            sql.execute("INSERT INTO 'captcha' ('direct','key') VALUES (?,?)", (random_string, random_word))
+            sql.execute("INSERT INTO 'captcha' ('direct','key') VALUES (?,?)", (random_string, random_word.lower()))
             db.commit()
             return Response({'name': random_string})
+
 
         elif request.data.get('oper') == 'check_captcha':
             '''   Проверяем капчу ('user_input':'x','photo':x) -> 'ans':true/false   '''
             user_input = request.data.get('user_input')
             photo = request.data.get('photo')
             return Response({'ans': bool(
-                sql.execute(f"SELECT * FROM 'captcha' WHERE direct='{photo}' AND key='{user_input}'").fetchall())})
+                sql.execute(f"SELECT * FROM 'captcha' WHERE direct='{photo}' AND key='{user_input.lower()}'").fetchall())})
 
         elif request.data.get('oper') == 'get_all_photos_by_id':
             '''   возвращаем список фоток ('id':'x') -> 'photos':[x,x,x,x]     '''
@@ -279,9 +276,23 @@ def users_list(request):
             code = ''.join(random.choice(letters) for i in range(15))
             sql.execute(f"INSERT INTO mail_accept ('mail','code') VALUES ('{mail}','{code}')")
             db.commit()
-            return Response()
+            text = f"Привет! твой код - {code}"
 
-        elif request.data.get('oper') == 'check_correct_mail':
+            smtp_server = smtplib.SMTP("smtp.yandex.ru", 587)
+            smtp_server.starttls()
+            smtp_server.login("Qwuorty@yandex.ru", "Pinkhjpf8642.!.")
+
+            # Настройка параметров сообщения
+            msg = MIMEMultipart()
+            msg["From"] = "Qwuorty@yandex.ru"
+            msg["To"] = mail
+            msg["Subject"] = "Оповещение"
+
+            msg.attach(MIMEText(text, "plain"))
+            smtp_server.sendmail("Qwuorty@yandex.ru", mail, msg.as_string())
+            return Response({'ans': True})
+
+        elif request.data.get('oper') == 'check_correct_mail_code':
             '''Отправляет пользователю сообщение на почту для подтверждения почты'''
             slov = request.data
             return Response({'ans': bool(sql.execute(
@@ -296,6 +307,7 @@ def users_list(request):
         elif request.data.get('oper') == 'get_account_info_by_mail':
             '''Обновляет пароль для пользователя с почтой mail '''
             a = sql.execute(f"SELECT * FROM users WHERE mail = '{request.data.get('mail')}'").fetchone()
+            print(a)
             arr = [0] * len(a)
             for i in range(len(a)):
                 arr[i] = str(a[i])
@@ -320,50 +332,38 @@ def users_list(request):
             return Response()
 
 
-        elif request.data.get('oper') == 'set_account_info_by_mail':
-            '''Записывает всю информацию о аккаунте по названию почты(имя, фамилию, возраст, адрес, вк/тг?? '''
-            sql.execute(f"UPDATE users SET name='{request.data.get('name')}' WHERE mail='{request.data.get('mail')}'")
-            sql.execute(
-                f"UPDATE users SET surname='{request.data.get('surname')}' WHERE mail='{request.data.get('mail')}'")
-            sql.execute(f"UPDATE users SET age='{request.data.get('age')}' WHERE mail='{request.data.get('mail')}'")
-            sql.execute(f"UPDATE users SET net='{request.data.get('net')}' WHERE mail='{request.data.get('mail')}'")
-            sql.execute(f"UPDATE users SET phone='{request.data.get('phone')}' WHERE mail='{request.data.get('mail')}'")
-            sql.execute(
-                f"UPDATE users SET address='{request.data.get('address')}' WHERE mail='{request.data.get('mail')}'")
-            sql.execute(
-                f"UPDATE users SET postcode='{request.data.get('postcode')}' WHERE mail='{request.data.get('mail')}'")
-            db.commit()
-            return Response()
-
-        elif request.data.get('oper') == 'set_account_info_by_mail':
-            '''Отправляет все данные о пользователе и о заказе на сервер, присваивая ему номер '''
+        elif request.data.get('oper') == 'create_order':
+            '''Отправляет все данные о пользователе и о заказе на сервер, присваивая ему номер'''
             slov = request.data
-            mail, name, surname, net, phone, address, postcode = slov.get('mail'), slov.get('name'), slov.get(
-                'surname'), slov.get('net'), slov.get('phone'), slov.get('address'), slov.get('postcode')
-            text = f'''
-Новый заказ!!!
-Почта -  {mail}
+            sql.execute(
+                f"INSERT INTO orders ('mail','name','surname','net','phone','address','postcode') VALUES ('{slov.get('mail')}','{slov.get('name')}',"
+                f"'{slov.get('surname')}','{slov.get('net')}','{slov.get('phone')}','{slov.get('address')}','{slov.get('postcode')}')")
+            db.commit()
+            text = f"""
+ВНИМАНИЕ, НОВЫЙ ЗАКАЗ ОТ пюсильки с номером телефона {slov['phone']}
 
-Имя - {name}
+"""
+            for i in admins:
+                requests.post(f'https://api.telegram.org/bot{TOK}/sendMessage?chat_id={i}&text={text}')
 
-Фамилия - {surname}
+            return Response({'num': len(sql.execute(f"SELECT * FROM orders").fetchall())})
 
-Соц.Сеть - {net}
+        elif request.data.get('oper') == 'get_order_by_num':
+            '''Запрашивает все данные о заказе по его номеру: массив товаров и размеров, адрес, дата'''
+            slov = request.data
+            arr = sql.execute(f"SELECT * FROM orders WHERE id='{slov.get('num')}'").fetchone()
+            return Response(
+                {'mail': arr[1], 'name': arr[2], 'phone': arr[5], 'address': arr[6],
+                 'postcode': arr[7]})
 
-Телефон - {phone}
 
-Адрес - {address}
+        elif request.data.get('oper') == 'get_order_story':
+            '''Запрашивает историю заказов по почте'''
+            slov = request.data
+            arr = sql.execute(f"SELECT * FROM orders WHERE mail='{slov.get('mail')}'").fetchall()
+            print([i[0] for i in arr], slov.get('mail'))
+            return Response({'nums': [i[0] for i in arr]})
 
-Почтовый индекс - {postcode}
-
-'''
-            for chat_id in chat_ids:
-                response = req.post(
-                    url='https://api.telegram.org/bot{0}/{1}'.format(tok, 'sendMessage'),
-                    data={'chat_id': chat_id, 'text': text}
-                ).json()
-
-            return Response()
 
         # if request.method == 'GET':
         #     serializer = UserSerializer(User.objects.all(), many=True)
