@@ -15,6 +15,8 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import re
+import requests
+
 
 # from .models import User
 # from .serializers import UserSerializer
@@ -330,14 +332,19 @@ def users_list(request):
                 f"UPDATE users SET postcode='{request.data.get('postcode')}' WHERE mail='{request.data.get('mail')}'")
             db.commit()
             return Response()
-
-
         elif request.data.get('oper') == 'create_order':
             '''Отправляет все данные о пользователе и о заказе на сервер, присваивая ему номер'''
             slov = request.data
+            mail = slov.get('mail')
+            arr = sql.execute(f"SELECT * FROM baskets WHERE mail='{mail}'").fetchall()
+            basket = []
+            for i in arr:
+                basket.append(':'.join((i[1], i[2])))
+            basket = ';'.join(basket)
+            sql.execute(f"DELETE FROM 'baskets' WHERE mail='{mail}'")
             sql.execute(
-                f"INSERT INTO orders ('mail','name','surname','net','phone','address','postcode') VALUES ('{slov.get('mail')}','{slov.get('name')}',"
-                f"'{slov.get('surname')}','{slov.get('net')}','{slov.get('phone')}','{slov.get('address')}','{slov.get('postcode')}')")
+                f"INSERT INTO orders ('mail','name','surname','net','phone','address','postcode','basket','date','status') VALUES ('{slov.get('mail')}','{slov.get('name')}',"
+                f"'{slov.get('surname')}','{slov.get('net')}','{slov.get('phone')}','{slov.get('address')}','{slov.get('postcode')}','{basket}','{dt.datetime.today()}','wait')")
             db.commit()
             text = f"""
 ВНИМАНИЕ, НОВЫЙ ЗАКАЗ ОТ пюсильки с номером телефона {slov['phone']}
