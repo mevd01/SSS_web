@@ -1,74 +1,120 @@
 import React, { useEffect, useState } from "react";
-import mobile_detect from "https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"
 import axios from "axios";
 import classes from '../../css/CatalogPage.css';
 
 import SeachBar from "../Parts/SearchBar";
+import FilterPart from "../Parts/FilterPart";
 import Catalog from "../Parts/Catalog";
+import ToTopBut from "../UI/ToTopBut/ToTopBut";
 
-function CatalogPage(){
+function CatalogPage({err, SRVRADDRESS}){
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-    // const [columnsCount, setColumnsCount] = useState(1); // начальное количество колонок
+    const[availScroll, setAvailScroll] = useState(window.scrollY)
+    const[shouldFill, setShould] = useState('')
+    const[catalogPos, setCatalogPos] = useState(0)
+    const[startCat, start] = useState('')
+    const[search, setSearch] = useState('')
+    const[availSort, setAvailSort] = useState(0);
+    const[nextProd, setNextProd] = useState({id:1, name:'', brand:'', price:'', description:''})
+    const[prods, setProds] = useState([]);
+    const[prodsIds, setProdIds] = useState([]);
+    const[catStat, setCatStat] = useState('');
 
-    const[nextProd, setNextProd] = useState({id:1, name:'', brand:'', price:'', description:'', imgsrc:''})
-    const[prods, setProds] = useState([])
-    
-    var columnsCount = 1
-    var oldpos = 0;
-    var topPos = 0;
-    var catpos = 1;
+    const[costMin, setCostMin] = useState(0)
+    const[costMax, setCostMax] = useState(1000000)
 
-
-
-
-    // position: bottom: 20px
-    function tpToTop(){
-        window.scrollBy({top: -window.scrollY, behavior : "smooth"});
-    }
-
+    var widCof = 1000;
+    var catCof = 5;
 
 
-    
-    async function fillCatalog(){
-        for(var i = catpos; i < catpos+10; ++i){
-            var response = await axios.post('http://127.0.0.1:8000/users/', {oper:'get_item_info_by_id', id:i});
-            if(response.data['answer'] == 1){
-                //('description':x 'brand':x,'price':x,'photo_id':x )
-                setNextProd({id:i, name:response.data['name'], brand:response.data['brand'], price:response.data['price'], description:response.data['description'], imgsrc:response.data['photo_id']})
-            }else{
-                break
-            }
-        }
-        catpos += 10;
-    }
 
     useEffect(() => {
+        console.log(startCat)
+        if(startCat != '' && startCat < 40){
+            setShould(1)
+        }
+    }, [startCat])
+
+
+    
+
+    function Search(search_value){
+        GetList(search_value);
+        setSearch(search_value)
+    }
+    useEffect(() => {
+        GetList();
+    }, [availSort])
+    
+
+    function GetList(ask_search = ''){
+        axios.post(SRVRADDRESS, {oper:'get_list_by_search', ask:(search != '' ?search : ask_search), type:availSort, cost_min:costMin, cost_max:costMax})
+        .then(response => {
+            if(response.data['ids'] !== '-1'){
+                setShould(0)
+                setProdIds(response.data['ids'])
+                setCatalogPos(0)
+                setProds([]);
+                start(1)
+                setCatStat('')
+            }else{
+                setProds([]);
+                err('Ничего не найдено')
+                setCatStat('Пока на этом всё')
+                setTimeout(() => {
+                    err('')
+                }, 6000);
+            }
+        })
+    }
+
+
+
+    function handleScroll(){
+        setAvailScroll(document.getElementById('to_hide').scrollTop)
+    }
+    useEffect(() => {
+        if(document.getElementById('catalog') == undefined){
+            return
+        }
+
+        if(document.getElementById('catalog').children[0] == undefined){
+            return
+        }
+
+        const catalog = document.getElementById('catalog')
+        if (catalog.children[catalog.children.length - 1].offsetTop - availScroll <= 2000) {
+            setShould(1)
+        }
+    }, [availScroll])
+    useEffect(() => {
+        if(shouldFill == 1 && shouldFill != ''){
+            setCatalogPos(catalogPos+1)
+            console.log('qwerty')
+        }
+    }, [shouldFill])
+    useEffect(() => {
+        if(catalogPos != 0 && catalogPos <= prodsIds.length){
+            axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', id:prodsIds[catalogPos-1][0]})
+            .then(response => {
+                if(response.data['answer'] == 1){
+                    //('description':x 'brand':x,'price':x,'photo_id':x )
+                    setNextProd({id:prodsIds[catalogPos-1][0], name:response.data['name'], brand:response.data['brand'], price:response.data['price'], description:response.data['description']})
+                }else{
+                    setCatStat('Пока на этом всё')
+                }
+            })
+            setShould(0)
+        }else if(catalogPos > prodsIds.length){
+            setCatStat('Пока на этом всё')
+        }
+    }, [catalogPos])
+    useEffect(() => {
         if (nextProd.name !== '') {
-            // alert(nextProd.id + ' ' + nextProd.name + ' ' + prods.length)
             addProd(nextProd);
-            // if(prodID%10 != 0){
-            //     requestNextProd()
-            // }
-
-
+            start(startCat+1)
         }
     }, [nextProd.name]);
-
-        // useEffect(() => {
-    //     async function requestNextProd(){
-    //         if(prodID == 0 || nextProd.id < prodID){
-    //             var response = await axios.post('http://127.0.0.1:8000/users/', {oper:'get_item_info_by_id', id:prodID});
-    //             if(response.data['answer'] == 1){
-    //                 //('description':x 'brand':x,'price':x,'photo_id':x )
-    //                 setNextProd({id:prodID, name:response.data['name'], brand:response.data['brand'], price:response.data['price'], description:response.data['description'], imgsrc:response.data['photo_id']})
-    //                 alert(prodID + ' ' + response.data['name'])
-    //             }
-    //         }
-    //     }
-
-    //     requestNextProd()
-    // }, [prodID])
-
     function addProd(nextProd){
         setProds([...prods, nextProd])
     }
@@ -76,105 +122,82 @@ function CatalogPage(){
 
 
 
-
-
   
 
+
     useEffect(() => {
-        const handleResize = () => {
+        //alert(document.cookie)
+        window.addEventListener('resize', handleResize);
+        document.getElementById('to_hide').addEventListener('scroll', handleScroll);
+
+        function handleResize(){
             setWindowWidth(window.innerWidth);
         }
-    
 
-        window.addEventListener('resize', handleResize);
-        if(windowWidth <= 400){
+        if(windowWidth <= 350){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(1, 100%)'
-        }else if(windowWidth > 400 && windowWidth <= 600){
+            widCof = 700
+            catCof = 1
+        }else if(windowWidth > 350 && windowWidth <= 500){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(2, 50%)'
-        }else if(windowWidth > 600 && windowWidth <= 800){
-            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(3, 33,3%)'
-        }else if(windowWidth > 800 && windowWidth <= 1200){
+            widCof = 1000
+            catCof = 2
+        }else if(windowWidth > 500 && windowWidth <= 750){
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(3, 33.3%)'
+            widCof = 1300
+            catCof = 3
+        }else if(windowWidth > 750 && windowWidth <= 1200){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(4, 25%)'
+            widCof = 1500
+            catCof = 4
+        }else if(windowWidth > 1200){
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(5, 20%)'
+            widCof = 1700
+            catCof = 5
         }
-        fillCatalog()
-        
+
+        //GetList()
         return () => {
             window.removeEventListener('resize', handleResize);
+            document.getElementById('to_hide').removeEventListener('scroll', handleScroll);
         }
-    }, []);
+    }, [])
 
     useEffect(() => {
-        if(windowWidth <= 400){
-            columnsCount = 1
+        if(windowWidth <= 350){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(1, 100%)'
-        }else if(windowWidth > 400 && windowWidth <= 600){
-            columnsCount = 2
+            widCof = 700
+            catCof = 1
+        }else if(windowWidth > 350 && windowWidth <= 500){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(2, 50%)'
-        }else if(windowWidth > 600 && windowWidth <= 800){
-            columnsCount = 3
-            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(3, 33,33%)'
-        }else if(windowWidth > 800 && windowWidth <= 1200){
-            columnsCount = 4
+            widCof = 1000
+            catCof = 2
+        }else if(windowWidth > 500 && windowWidth <= 750){
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(3, 33.3%)'
+            widCof = 1300
+            catCof = 3
+        }else if(windowWidth > 750 && windowWidth <= 1200){
             document.getElementById('catalog').style.gridTemplateColumns = 'repeat(4, 25%)'
+            widCof = 1500
+            catCof = 4
+        }else if(windowWidth > 1200){
+            document.getElementById('catalog').style.gridTemplateColumns = 'repeat(5, 20%)'
+            widCof = 1700
+            catCof = 5
         }
-      
     }, [windowWidth]);
 
 
 
 
-    function handleScroll(){
-        console.log(topPos)
-        if(window.scrollY - oldpos > document.getElementById('catalog').children[0].clientHeight){
-            oldpos += document.getElementById('catalog').children[0].clientHeight + 30
-            ++topPos
-
-            if(document.getElementById('catalog').children.length/columnsCount - topPos < 3){
-                alert('yeah')
-                fillCatalog()
-            }
-        }
-
-        if(window.scrollY - oldpos < -100){
-            document.getElementById('to_top').style.bottom = '20px'
-        }else{
-            document.getElementById('to_top').style.bottom = '-50px'
-        }
-    };
-
-
-    useEffect(() => {
-        window.addEventListener('scroll', handleScroll);
-
-        return () => {
-        window.removeEventListener('scroll', handleScroll);
-        }
-    }, []);
-
-
-
-
-
     return(
-        <>
+        <div className="catalog_part">
             <h1>SSS</h1>
-            <SeachBar/>
-            <div className='search_filter'>
-            <a>#teg</a>
-            <a>#teg</a>
-            <a>#teg</a>
-            <a>#teg</a>
-            </div>
-            <div className='search_sorter'>
-            <select>
-                <option>Что-то</option>
-                <option>Что-то</option>
-                <option>Что-то</option>
-            </select>
-            </div>
-            <Catalog prods={prods}/>
-            <div id='to_top' onClick={tpToTop}></div>
-        </>
+            <SeachBar search={Search}/>
+            <FilterPart sorted={setAvailSort} cost_min={setCostMin} cost_max={setCostMax} apply={GetList}/>
+            <Catalog prods={prods} err={err} all={catStat} SRVRADDRESS={SRVRADDRESS}/>
+            <ToTopBut/>
+        </div>
     )
 }
 
