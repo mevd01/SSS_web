@@ -3,39 +3,39 @@ import classes from '../../../css/OrderProd.css'
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-function OrderProd({SRVRADDRESS, callCost, outCost, ...props}){
-    const[imgsrc, setImgsrc] = useState('');
+function OrderProd({SRVRADDRESS, callCost, ...props}){
     const[price, setPrice] = useState('');
 
-    useEffect(() => {
-        fetch(SRVRADDRESS, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ oper: 'get_photo_by_tov_id', id:props.prod.id, num:-1})
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            setImgsrc(URL.createObjectURL(blob));
-        });
 
+    function getCookie(name) {
+        let matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    }
+
+
+    useEffect(() => {
         async function getPrice(){
-            var response = await axios.post(SRVRADDRESS, {oper:'get_cost_by_id_and_size', id:props.prod.id, size:props.prod.size});
+            let response = await axios.post(SRVRADDRESS, {oper:'get_cost_by_id_and_size', id:props.prod.id, size:props.prod.size, mail:getCookie('user')});
             setPrice(response.data['cost'])
-            if(callCost == 'yes'){
-                outCost(response.data['cost'])
-            }
         }
         getPrice();
     }, [])
+    useEffect(() => {
+        async function getPrice(){
+            let response = await axios.post(SRVRADDRESS, {oper:'get_cost_by_id_and_size', id:props.prod.id, size:props.prod.size, mail:getCookie('user')});
+            setPrice(response.data['cost'])
+        }
+        getPrice();
+    }, [props.prod])
 
     return(
         <Link to={'/product?art=' + props.prod.id}>
             <div className="OrderProd">
                 <div className="order_prod_main_info">
                     <div className="order_template">
-                        <img src={imgsrc}/>
+                        <img src={`data:image/png;base64,${props.prod.src}`}/>
                     </div>
                     <div className="order_right_text">
                         <div className="cart_name">{props.prod.name}</div>

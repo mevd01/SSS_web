@@ -5,7 +5,6 @@ function InCartProd({SRVRADDRESS, ...props}){
     const[availQuant, setAvailQuant] = useState(props.prod.quant)
     const[price, setPrice] = useState(props.prod.price.replace(' ', ''))
     const[availPrice, setAvailPrice] = useState(0)
-    const[imgSrc, setImgSrc] = useState('');
 
     useEffect(() => {
         if(availQuant != 1){
@@ -14,20 +13,6 @@ function InCartProd({SRVRADDRESS, ...props}){
             setAvailPrice(Number(price))
         }
     }, [availQuant])
-
-    useEffect(() => {
-        fetch(SRVRADDRESS, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ oper: 'get_photo_by_tov_id', id:props.prod.id, num:-1})
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            setImgSrc(URL.createObjectURL(blob));
-        });
-    }, [props.prod.id])
 
     function ChengeQuant(operation){
         props.requant(operation, props.prod)
@@ -54,7 +39,7 @@ function InCartProd({SRVRADDRESS, ...props}){
         <div className="inCartProd">
             <div className="cart_prod_main_info">
                 <div className="cart_template">
-                    <img src={imgSrc}/>
+                    <img src={`data:image/png;base64,${props.prod.src}`}/>
                 </div>
                 <div className="cart_right_text">
                     <div className="cart_name">{props.prod.name}</div>

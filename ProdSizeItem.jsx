@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 
-function ProdSizeItem(props){
+function ProdSizeItem({setPrice, setSize, ...props}){
     const[disabled, setDisabled] = useState(false)
+
+    function set(){
+        setPrice(props.price)
+        setSize(props.size)
+    }
 
     useEffect(() => {
         if(props.price == '-'){
@@ -18,7 +23,7 @@ function ProdSizeItem(props){
 
     if(props.size != ''){
         return(
-            <label className="size_var" onClick={() => {props.price != '-' ?props.set(props.size) :<></>}}>
+            <label className="size_var" onClick={() => {props.price != '-' ?set() :<></>}}>
                 {disabled
                     ?<>
                         <input type="radio" name="size_checker" disabled/>

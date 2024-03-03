@@ -6,6 +6,7 @@ function Prod_mini({info, err, SRVRADDRESS}){
     const[checked, setChecked] = useState('none_liked');
     const[imgsrc, setImgsrc] = useState('');
     const[name, setName] = useState('');
+    const[wait, setWait] = useState(false)
 
     function getCookie(name) {
         let matches = document.cookie.match(new RegExp(
@@ -13,32 +14,13 @@ function Prod_mini({info, err, SRVRADDRESS}){
         ));
         return matches ? decodeURIComponent(matches[1]) : undefined;
     }
-    
-    async function getFavorite(){
-        let response = await axios.post(SRVRADDRESS, {oper:'is_liked', id:info.id, mail:getCookie('user')});
 
-        if(response.data['ans'] == true){
+    useEffect(() => {
+        if(info.is_liked == true){
             setChecked('liked')
         }else{
             setChecked('none_liked')
         }
-    }
-    useEffect(() => {
-        if(getCookie('stat') == 'login'){
-            getFavorite()
-        }
-        fetch(SRVRADDRESS, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ oper: 'get_photo_by_tov_id', id:info.id, num:-1})
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            setImgsrc(URL.createObjectURL(blob));
-        })
-        .catch()
 
         if(info.name[39] != undefined){
             var i = 39
@@ -74,7 +56,7 @@ function Prod_mini({info, err, SRVRADDRESS}){
             <div className={"favorite_icon_in_cat " + checked} onClick={() => {AddToFavorite()}}></div>
             <Link to={'/product?art=' + info.id}>
                 <div className="prod_gallery">
-                    <img src={imgsrc}/>
+                    <img src={`data:image/png;base64,${info.src}`}/>
                 </div>
                 <div className="prod_main_info">
                     <div className="prod_cat_name">{name}</div>

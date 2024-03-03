@@ -5,68 +5,74 @@ import axios from "axios";
 import OrderProd from "./OrderProd";
 
 function StoryItem({SRVRADDRESS, info, ...props}){
-    const[TotalPrice, setTotal] = useState(0)
-    const[cartIds, setCart] = useState([]);
-    const[cartPos, setCartPos] = useState(0)
-    const[fillPos, fill] = useState('')
+    const[cartItems, setCart] = useState([]);
     const[prods, setProds] = useState([]);
-    const[nextProd, setNextProd] = useState({id:'', name:'', quant:'', size:''});
-    const[costFillPos, setFillPos] = useState(0);
 
     useEffect(() => {
         setCart(info.cart)
     }, [])
     useEffect(() => {
-        if(cartIds != ''){
-            fill(1)
+        if(cartItems != '' && cartItems != undefined){
+            getStoryCart()
         }
-    }, [cartIds])
-    useEffect(() => {
-        if(fillPos != '' && cartPos < cartIds.length){
-            setCartPos(cartPos+1)
-        }
-    }, [fillPos])
-    useEffect(() => {
-        if(cartPos != 0){
-            axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', id:cartIds[cartPos-1][0]})
-            .then(response => {
-                setNextProd({id:cartIds[cartPos-1][0], name:response.data['name'], quant:1, size:cartIds[cartPos-1][1]})
+    }, [cartItems])
+
+    function getStoryCart(){
+        let ids = []
+        let sizes = []
+        let cart = []
+
+        cartItems.forEach(item => {
+            ids.push(item[0])
+            sizes.push(item[1])
+        })
+        
+        axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', ask_ids:ids, mail:getCookie('user')})
+        .then(response => {
+            response.data['list'].forEach(prod => {
+                if(prod.answer !== 1){
+                    return
+                }
+
+                const Prod = {
+                    id:prod.id,
+                    name:prod.name,
+                    src:prod.photo,
+                    quant:1,
+                    size:sizes[ids.indexOf(prod.id)]
+                }
+
+                cart.push(Prod)
+                setProds([...cart])
             })
-        }
-    }, [cartPos])
-    useEffect(() => {
-        if (nextProd.name !== '') {
-            addProd(nextProd);
-        }
-    }, [nextProd.name]);
-    function addProd(nextProd){
-        setProds([...prods, nextProd])
-        fill(fillPos+1)
+        })
     }
+
+
+
+
 
 
 
     function ToBeautyCost(refer){
         let masterpiece = ''
-        alert(refer)
-        for(let i = 0; i < refer.length; ++i){
-            if((refer.length - i)%4 == 0){
-                masterpiece += ' '
-                masterpiece += refer[i]
+        for(let i = 0; i < String(refer).length; ++i){
+            if(i%3 == 0){
+                masterpiece = ' ' + masterpiece
+                masterpiece = String(refer)[String(refer).length-(i+1)] + masterpiece
             }else{
-                masterpiece += refer[i]
+                masterpiece = String(refer)[String(refer).length-(i+1)] + masterpiece
             }
-            alert(masterpiece)
         }
         return masterpiece
     }
 
 
-
-    function Total(prc){
-        if(prc != undefined){
-            setTotal(Number(TotalPrice) + Number(prc.replace(' ', '')))
-        }
+    function getCookie(name) {
+        let matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
     }
 
     return(
@@ -85,12 +91,12 @@ function StoryItem({SRVRADDRESS, info, ...props}){
             </div>
             <div className="story_mid_part">
                 {prods.map((prod) =>
-                    <OrderProd key={prod.id+prod.size} prod={prod} SRVRADDRESS={SRVRADDRESS} callCost={'yes'} outCost={Total}/>
+                    <OrderProd key={prod.id+prod.size} prod={prod} SRVRADDRESS={SRVRADDRESS} callCost={'yes'}/>
                 )}
             </div>
             <div className="story_bot_part">
                 <div>Итого:</div>
-                <div>{TotalPrice + '₽'}</div>
+                <div>{info.total + '₽'}</div>
             </div>
         </div>
     )

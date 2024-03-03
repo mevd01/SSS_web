@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import OutsideClickHandler from 'react-outside-click-handler';
 import classes from '../../../css/Menu.css'
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -28,6 +29,12 @@ function Menu({SRVRADDRESS, ...props}){
     }, [props.permit])
 
 
+    function outsideHandle(){
+        if(props.permit){
+            props.closeMenu(false)
+        }
+    }
+
 
 
     useEffect(() => {
@@ -56,33 +63,35 @@ function Menu({SRVRADDRESS, ...props}){
 
     
     return(
-        <div className="menu_window" id="menu">
-            <div className="menu_spec_space">
-                <div className="inmenu_logo"></div>
-                <div id="close_menu" onClick={() => {props.closeMenu(false)}}></div>
-            </div>
-            <div className="menu_main_part">
-                <div className='menu_sections'>
-                    <Link to='/catalog'><div onClick={() => {props.closeMenu(false)}}>КАТАЛОГ<div className="inmenu_more_icon"></div></div></Link>
-                    <Link to='/'><div onClick={() => {props.closeMenu(false)}}>ОТЗЫВЫ<div className="inmenu_more_icon"></div></div></Link>
-                    <Link to='/FAQ'><div onClick={() => {props.closeMenu(false)}}>FAQ<div className="inmenu_more_icon"></div></div></Link>
+        <OutsideClickHandler onOutsideClick={() => outsideHandle()}>
+            <div className="menu_window" id="menu">
+                <div className="menu_spec_space">
+                    <div className="inmenu_logo"></div>
+                    <div id="close_menu" onClick={() => {props.closeMenu(false)}}></div>
                 </div>
-                {getCookie('stat') !== 'login'
-                    ?<div className="log_reg_links">
-                        <Link to='/registr?func=reg'><div className="reg_link" onClick={() => {props.closeMenu(false)}}>РЕГИСТРАЦИЯ</div></Link>
-                        <Link to='/registr?func=log'><div className="login_link" onClick={() => {props.closeMenu(false)}}>ВОЙТИ</div></Link>
+                <div className="menu_main_part">
+                    <div className='menu_sections'>
+                        <Link to='/catalog'><div onClick={() => {props.closeMenu(false)}}>КАТАЛОГ<div className="inmenu_more_icon"></div></div></Link>
+                        <Link to='/'><div onClick={() => {props.closeMenu(false)}}>ОТЗЫВЫ<div className="inmenu_more_icon"></div></div></Link>
+                        <Link to='/FAQ'><div onClick={() => {props.closeMenu(false)}}>FAQ<div className="inmenu_more_icon"></div></div></Link>
                     </div>
-                    :<div className="menu_profile_part">
-                        <Link to='/account'><div className="menu_profile_but" onClick={() => {props.closeMenu(false)}}>
-                            <div className="menu_profile_icon"></div>
-                            <div className="menu_profile_name">{accName != '' && accName != 'None' ?accName :getCookie('user')}</div>
-                            <div className="menu_profile"></div>  
-                        </div></Link>
-                        <Link to='/'><div className="menu_logout" onClick={() => {props.closeMenu(false); props.LogOut()}}>ВЫЙТИ</div></Link>
-                    </div>
-                }
+                    {getCookie('stat') !== 'login'
+                        ?<div className="log_reg_links">
+                            <Link to='/registr?func=reg'><div className="reg_link" onClick={() => {props.closeMenu(false)}}>РЕГИСТРАЦИЯ</div></Link>
+                            <Link to='/registr?func=log'><div className="login_link" onClick={() => {props.closeMenu(false)}}>ВОЙТИ</div></Link>
+                        </div>
+                        :<div className="menu_profile_part">
+                            <Link to='/account'><div className="menu_profile_but" onClick={() => {props.closeMenu(false)}}>
+                                <div className="menu_profile_icon"></div>
+                                <div className="menu_profile_name">{accName != '' && accName != 'None' ?accName :getCookie('user')}</div>
+                                <div className="menu_profile"></div>  
+                            </div></Link>
+                            <Link to='/'><div className="menu_logout" onClick={() => {props.closeMenu(false); props.LogOut()}}>ВЫЙТИ</div></Link>
+                        </div>
+                    }
+                </div>
             </div>
-        </div>
+        </OutsideClickHandler>
     )
 }
 
