@@ -73,12 +73,12 @@ const FilterPriceRanger = ({cost_min, cost_max}) => {
             <div className="price-input">
                 <div className="field">
                     <span>Min</span>
-                    <input type="number" className="log_reg_input" value={minVal*minVal} onChange={(e) => setMinVal(e.target.value)}/>
+                    <div>{minVal*minVal}</div>
                 </div>
                 <div className="separator">-</div>
                 <div className="field">
                     <span>Max</span>
-                    <input type="number" className="log_reg_input" value={maxVal*maxVal} onChange={(e) => setTextMax(e.target.value)}/>
+                    <div>{maxVal*maxVal}</div>
                 </div>
             </div>
             <div className="slider">
