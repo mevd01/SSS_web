@@ -1,0 +1,161 @@
+.catalog_part > h1{
+    text-align: center;
+    font-size: 30px;
+
+    margin: 50px 0;
+}
+
+
+
+.search_bar_place{
+    display: flex;
+    justify-content: center;
+
+    margin-bottom: 30px;
+}
+.search_bar{
+    display: flex;
+
+    width: 70%;
+    max-width: 600px;
+    height: fit-content;
+
+    border: 1px solid black;
+}
+.search_bar > input{
+    border: none;
+
+    width: 100%;
+    padding: 6px 10px;
+    margin: 0;
+}
+.search_bar > input:focus{
+    border: none;
+    outline: none;
+}
+.search_bar > .search_icon{
+    background-image: url(../img/svg/search.svg);
+    background-size: 25px;
+    padding-right: 11px;
+
+    width: 35px;
+    height: 35px;
+}
+@media screen and (max-device-width: 400px) {
+    .search_bar{
+        width: auto !important;
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+}
+
+
+
+
+
+
+
+
+
+.catalog{
+    display: grid;
+    overflow: hidden;
+    
+    max-width: 1200px;
+    min-height: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.catalog > div{
+    transition: 0.3s;
+}
+.catalog > div:hover{
+    border-color: black;
+}
+.after_cat{
+    text-align: center;
+    margin-top: 50px;
+}
+
+
+
+
+
+.liked{
+    background-image: url(../img/svg/red-heart-icon.svg);
+    background-size: 40px !important;
+}
+.none_liked{
+    background-image: url(../img/svg/heart.svg);
+}
+.favorite_icon_in_cat{
+    width: 40px;
+    height: 40px;
+
+    background-size: 29px;
+    margin: 0 0 0 auto;
+
+    cursor: pointer;
+    position: relative;
+    top: 13px;
+    right: 10px;
+}
+.favorite_icon_in_page{
+    width: 60px;
+    height: 60px;
+
+    background-size: 35px;
+
+    transition: 0.2s;
+    position: absolute;
+    top: 70px;
+    right: 10px;
+}
+.trable{
+    width: 100%;
+    height: 100%;
+    background-image: url(../img/svg/heart-broken.svg);
+}
+
+
+.prod_mini{
+    border: solid 1px rgb(216, 216, 216);
+
+    display: flex;
+    flex-direction: column;
+}
+.prod_mini > a{
+    margin-top: -40px;
+    height: 100%;
+}
+.prod_gallery{
+    transition: 0.2s;
+    
+    margin: 10px;
+    min-height: 160px;
+    
+    background-image: url(../img/svg/clock.svg);
+    background-size: 40px;
+}
+.prod_gallery > img{
+    width: 100%;
+    height: auto;
+    margin: auto;
+}
+.prod_main_info{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    margin: 10px 10px;
+}
+.prod_cat_name{
+    overflow: hidden;
+    height: 75px;
+    margin-bottom: 15px;
+}
+.prod_cat_price{
+    font-weight: 500;
+
+    margin: auto 0;
+}
