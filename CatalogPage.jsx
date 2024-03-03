@@ -8,29 +8,37 @@ import Catalog from "../Parts/Catalog";
 import ToTopBut from "../UI/ToTopBut/ToTopBut";
 
 function CatalogPage({err, SRVRADDRESS}){
-    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const[windowWidth, setWindowWidth] = useState(window.innerWidth);
     const[availScroll, setAvailScroll] = useState(window.scrollY)
+
     const[shouldFill, setShould] = useState('')
     const[catalogPos, setCatalogPos] = useState(0)
     const[startCat, start] = useState('')
     const[search, setSearch] = useState('')
     const[availSort, setAvailSort] = useState(0);
-    const[nextProd, setNextProd] = useState({id:1, name:'', brand:'', price:'', description:''})
+    const[dirts, setDirts] = useState([])
     const[prods, setProds] = useState([]);
     const[prodsIds, setProdIds] = useState([]);
     const[catStat, setCatStat] = useState('');
 
     const[costMin, setCostMin] = useState(0)
     const[costMax, setCostMax] = useState(1000000)
+    const[gen, setGen] = useState(null);
 
     var widCof = 1000;
     var catCof = 5;
 
 
+    function getCookie(name) {
+        let matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    }
+
 
     useEffect(() => {
-        console.log(startCat)
-        if(startCat != '' && startCat < 40){
+        if(startCat != '' && startCat < 2){
             setShould(1)
         }
     }, [startCat])
@@ -38,6 +46,14 @@ function CatalogPage({err, SRVRADDRESS}){
 
     
 
+    function ApplyFilter(gen){
+        setGen(gen)
+    }
+    useEffect(() => {
+        if(gen != null){
+            GetList();
+        }
+    }, [gen])
     function Search(search_value){
         GetList(search_value);
         setSearch(search_value)
@@ -48,7 +64,16 @@ function CatalogPage({err, SRVRADDRESS}){
     
 
     function GetList(ask_search = ''){
-        axios.post(SRVRADDRESS, {oper:'get_list_by_search', ask:(search != '' ?search : ask_search), type:availSort, cost_min:costMin, cost_max:costMax})
+        console.log(gen)
+        axios.post(SRVRADDRESS, {
+            oper:'get_list_by_search',
+            gen:(gen != null ?gen :''),
+            ask:(search != '' ?search : ask_search),
+            type:availSort,
+            cost_min:costMin,
+            cost_max:costMax,
+            mail:getCookie('user')
+        })
         .then(response => {
             if(response.data['ids'] !== '-1'){
                 setShould(0)
@@ -67,6 +92,16 @@ function CatalogPage({err, SRVRADDRESS}){
             }
         })
     }
+    function CreateIdsArr(begin = 0, end = 20){
+        let IdsArr = []
+        let i = begin
+        while(i < end){
+            IdsArr.push(prodsIds[i][0])
+            ++i
+        }
+        return IdsArr;
+    }
+
 
 
 
@@ -90,34 +125,48 @@ function CatalogPage({err, SRVRADDRESS}){
     useEffect(() => {
         if(shouldFill == 1 && shouldFill != ''){
             setCatalogPos(catalogPos+1)
-            console.log('qwerty')
+        }else{
+            setShould(0)
         }
     }, [shouldFill])
     useEffect(() => {
-        if(catalogPos != 0 && catalogPos <= prodsIds.length){
-            axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', id:prodsIds[catalogPos-1][0]})
-            .then(response => {
-                if(response.data['answer'] == 1){
-                    //('description':x 'brand':x,'price':x,'photo_id':x )
-                    setNextProd({id:prodsIds[catalogPos-1][0], name:response.data['name'], brand:response.data['brand'], price:response.data['price'], description:response.data['description']})
-                }else{
-                    setCatStat('Пока на этом всё')
-                }
-            })
-            setShould(0)
-        }else if(catalogPos > prodsIds.length){
+        if(catalogPos != 0 && catalogPos*20 <= prodsIds.length){
+            const ids = CreateIdsArr((catalogPos-1)*20, (prodsIds.length > catalogPos*20 ?catalogPos*20 :prodsIds.length))
+
+            axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', ask_ids:ids, mail:getCookie('user')})
+            .then(response => setDirts(response.data['list']))
+        }else if(catalogPos*20 > prodsIds.length){
             setCatStat('Пока на этом всё')
         }
     }, [catalogPos])
     useEffect(() => {
-        if (nextProd.name !== '') {
-            addProd(nextProd);
+        if(dirts.length != 0){
+            let tempArr = []
+            let i = 0
+            while(dirts.length > i){
+                if(dirts[i].answer == 1){
+                    //('description':x 'brand':x,'price':x,'photo_id':x )
+                    const dirt_prod = {
+                        id:dirts[i]['id'],
+                        name:dirts[i]['name'],
+                        brand:dirts[i]['brand'],
+                        price:dirts[i]['price'],
+                        description:dirts[i]['description'],
+                        is_liked:dirts[i]['is_liked'],
+                        src:dirts[i]['photo']
+                    }
+                    tempArr.push(dirt_prod)
+                }else{
+                    setCatStat('Пока на этом всё')
+                    return
+                }
+                ++i
+            }
+            setProds([...prods, ...tempArr])
+            setShould(0)
             start(startCat+1)
         }
-    }, [nextProd.name]);
-    function addProd(nextProd){
-        setProds([...prods, nextProd])
-    }
+    }, [dirts])
 
 
 
@@ -126,7 +175,6 @@ function CatalogPage({err, SRVRADDRESS}){
 
 
     useEffect(() => {
-        //alert(document.cookie)
         window.addEventListener('resize', handleResize);
         document.getElementById('to_hide').addEventListener('scroll', handleScroll);
 
@@ -156,7 +204,6 @@ function CatalogPage({err, SRVRADDRESS}){
             catCof = 5
         }
 
-        //GetList()
         return () => {
             window.removeEventListener('resize', handleResize);
             document.getElementById('to_hide').removeEventListener('scroll', handleScroll);
@@ -194,7 +241,7 @@ function CatalogPage({err, SRVRADDRESS}){
         <div className="catalog_part">
             <h1>SSS</h1>
             <SeachBar search={Search}/>
-            <FilterPart sorted={setAvailSort} cost_min={setCostMin} cost_max={setCostMax} apply={GetList}/>
+            <FilterPart sorted={setAvailSort} cost_min={setCostMin} cost_max={setCostMax} apply={ApplyFilter}/>
             <Catalog prods={prods} err={err} all={catStat} SRVRADDRESS={SRVRADDRESS}/>
             <ToTopBut/>
         </div>

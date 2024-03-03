@@ -15,15 +15,16 @@ function AccountPage({SRVRADDRESS}){
     const[catalogPos, setCatalogPos] = useState(0);
     const[shouldFillStory, FillStory] = useState('');
     const[storyPos, setStoryPos] = useState(0);
+    const[ScrollFill, setScrollFill] = useState(false);
 
     const[accountInfo, setAccountInfo] = useState({name:'', surname:'', age:'', net:'', phone:'', address:'', postcode:''});
     const[name, setName] = useState('');
     const[active, setActive] = useState('cls')
     const[vkTg, setVkTg] = useState('tg');
-    const[favorHist, setFavorHist] = useState('hist');
+    const[favorHist, setFavorHist] = useState('favor');
 
     const[nextProd, setNextProd] = useState({id:1, name:'', brand:'', price:'', description:''})
-    const[nextOrder, setNextOrder] = useState({mail:'', name:'', phone:'', address:'', postcode:'', cart:[]})
+    const[nextOrder, setNextOrder] = useState({mail:'', name:'', phone:'', address:'', postcode:'', cart:[], total:0})
     const[windowWidth, setWindowWidth] = useState(window.innerWidth);
     const[favorIds, setFavorIds] = useState([]);
     const[favorProds, setFavorProds] = useState([]);
@@ -37,11 +38,15 @@ function AccountPage({SRVRADDRESS}){
 
 
 
-    useEffect(() => {
-        if(startCat != '' && startCat <= favorIds.length && catalogPos < favorIds.length && catalogPos < 40){
-            setShould(1)
+    function CreateIdsArr(begin = 0, end = 20){
+        let IdsArr = []
+        let i = begin
+        while(i < end){
+            IdsArr.push(favorIds[i][0])
+            ++i
         }
-    }, [startCat])
+        return IdsArr;
+    }
 
 
     function handleScroll(){
@@ -57,64 +62,88 @@ function AccountPage({SRVRADDRESS}){
         }
 
         const catalog = document.getElementById('catalog')
-        if (document.getElementById('catalog').children[catalog.children.length - 1].offsetTop - availScroll <= 2000 && catalogPos < favorIds.length) {
+        if (ScrollFill && document.getElementById('catalog').children[catalog.children.length - 1].offsetTop - availScroll <= 2000 && catalogPos < favorIds.length) {
             setShould(1)
         }
     }, [availScroll])
     useEffect(() => {
         if(shouldFill == 1 && shouldFill != ''){
             setCatalogPos(catalogPos+1)
+            //getFavorite(IdsArr)
         }
     }, [shouldFill])
     useEffect(() => {
-        if(catalogPos != 0){
-            axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', id:favorIds[catalogPos-1]})
-            .then(response => {
-                if(response.data['answer'] == 1){
-                    //('description':x 'brand':x,'price':x,'photo_id':x )
-                    setNextProd({id:favorIds[catalogPos-1], name:response.data['name'], brand:response.data['brand'], price:response.data['price'], description:response.data['description']})
-                }
-            })
+        if(catalogPos != 0 && catalogPos*20 <= favorIds.length){
+            const ids = CreateIdsArr((catalogPos-1)*20, (favorIds.length > catalogPos*20 ?catalogPos*20 :favorIds.length))
+            getFavorite(ids)
         }
     }, [catalogPos])
-    useEffect(() => {
-        if (nextProd.name !== '') {
-            addProd(nextProd);
-            start(startCat+1)
-        }
-    }, [nextProd.name]);
-    function addProd(nextProd){
-        setFavorProds([...favorProds, nextProd])
-        setShould(0)
-    }
+    // useEffect(() => {
+    //     if (nextProd.name !== '') {
+    //         addProd(nextProd);
+    //         start(startCat+1)
+    //     }
+    // }, [nextProd.name]);
+    // function addProd(nextProd){
+    //     setFavorProds([...favorProds, nextProd])
+    //     setShould(0)
+    // }
 
 
 
-
-
-
-
-    useEffect(() => {
-        if(shouldFillStory != '' && storyPos < storyIds.length){
-            setStoryPos(storyPos+1)
-        }
-    }, [shouldFillStory])
-    useEffect(() => {
-        if(storyPos != 0){
-            axios.post(SRVRADDRESS, {oper:'get_order_by_num', num:storyIds[storyPos-1]})
-            .then(response => {
-                setNextOrder({mail:response.data['mail'], name:response.data['name'], phone:response.data['phone'], address:response.data['address'], postcode:response.data['postcode'], date:response.data['date'], status:response.data['status'], cart:[...response.data['busket']]})
+    function getFavorite(IdsArr){
+        axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', ask_ids:IdsArr, mail:getCookie('user')})
+        .then(list => {
+            let prods = []
+            list.data['list'].forEach((item) => {
+                if(item.answer == 1){
+                    const nextProd = {
+                        id:item.id,
+                        name:item.name,
+                        brand:item.brand,
+                        price:item.price,
+                        src:item.photo,
+                        is_liked:item.is_liked, 
+                        description:item.description
+                    }
+                    prods.push(nextProd)
+                    setFavorProds([...prods])
+                }
             })
-        }
-    }, [storyPos])
-    useEffect(() => {
-        if (nextOrder.mail !== '') {
-            addOrder(nextOrder);
-        }
-    }, [nextOrder]);
-    function addOrder(nextOrder){
-        setStory([...story, nextOrder])
-        FillStory(shouldFillStory+1)
+            setShould(0)
+        })
+    }
+    function getStory(){
+        let OrderNums = []
+        let Story = []
+        axios.post(SRVRADDRESS, {oper:'get_order_story', mail:getCookie('user')})
+        .then(response => {
+            OrderNums = response.data['nums']
+
+            if(OrderNums === undefined || OrderNums.length === 0){
+                return
+            }
+            
+            OrderNums.forEach(order => {
+                axios.post(SRVRADDRESS, {oper:'get_order_by_num', num:order})
+                .then(response => {
+                    const newOrder  = {
+                        mail:response.data['mail'],
+                        name:response.data['name'],
+                        phone:response.data['phone'],
+                        address:response.data['address'],
+                        postcode:response.data['postcode'],
+                        date:response.data['date'],
+                        status:response.data['status'],
+                        cart:[...response.data['busket']],
+                        total:response.data['sum']
+                    }
+                    Story.push(newOrder)
+                    setStory([...Story])
+                })
+                .catch(response => console.log(response))
+            })
+        })
     }
 
 
@@ -144,17 +173,29 @@ function AccountPage({SRVRADDRESS}){
 
         if(getCookie('stat') == 'login'){
             getAccountInfo()
+            getStory()
+
             axios.post(SRVRADDRESS, {oper:'liked_list', mail:getCookie('user')})
             .then(response => {
-                setFavorIds([...response.data['ans']])
-                start(1)
+                let favDirtIds = [...response.data['ans']]
+    
+                if(favDirtIds.length === 0 || favDirtIds.length === undefined){
+                    return
+                }
+    
+                let favIds = []
+                if(favDirtIds.length < 30){
+                    favIds = favDirtIds
+                }else{
+                    favIds = favDirtIds.slice(0, 21)
+                    setFavorIds(favDirtIds.slice(21))
+                    setScrollFill(true)
+                }
+
+                getFavorite(favIds)
             })
 
-            axios.post(SRVRADDRESS, {oper:'get_order_story', mail:getCookie('user')})
-            .then(response => {
-                setStoryIds([...response.data['nums']])
-                FillStory(1)
-            })
+
 
             
             window.addEventListener('resize', handleResize);

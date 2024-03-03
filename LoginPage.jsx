@@ -18,7 +18,6 @@ function LoginPage({SRVRADDRESS}){
     const[operation, setOperation] = useState('');
     const[savePass, setSavePass] = useState(false);
     const[logReg, setLogReg] = useState('');
-    console.log(logReg)
     const navigate = useNavigate();
 
     const location = useLocation();
@@ -38,23 +37,32 @@ function LoginPage({SRVRADDRESS}){
 
 
     function LogIn(savePas){
-        axios.post(SRVRADDRESS, {oper:'check_sign_in_user',mail:loginData.mail.replace(' ', ''), password:loginData.password.replace(' ', '')})
-        .then(response => {
-            if(response.data['ans'] == 1){
-                if(savePas){
-                    document.cookie = 'stat=login; path=/; max-age=15768000' // Запоминаем на пол года
-                    document.cookie = 'user=' + loginData.mail + '; path=/; max-age=15768000'
-                    navigate("/account");
-                }else{
-                    document.cookie = 'stat=login; path=/; max-age=3600'// Запоминаем на 1 час
-                    document.cookie = 'user=' + loginData.mail + '; path=/; max-age=3600'
-                    navigate("/account");
-                }
+        ChengeMail(loginData.mail, 'log')
+        .then(mail_ans => {
+            if(mail_ans.data['answer'] === '1'){
+                console.log(mail_ans.data['answer'])
+                setLogRegErrInfo({...logRegErrInfo, log:'Неверный формат'})
+                setOperation('update')
             }else{
-                setLogRegErrInfo({...logRegErrInfo, log:"Неверный ящик или пароль"})
+                axios.post(SRVRADDRESS, {oper:'check_sign_in_user',mail:loginData.mail.replace(' ', ''), password:loginData.password.replace(' ', '')})
+                .then(response => {
+                    if(response.data['ans'] == 1){
+                        if(savePas){
+                            document.cookie = 'stat=login; path=/; max-age=15768000' // Запоминаем на пол года
+                            document.cookie = 'user=' + loginData.mail + '; path=/; max-age=15768000'
+                            navigate("/account");
+                        }else{
+                            document.cookie = 'stat=login; path=/; max-age=3600'// Запоминаем на 1 час
+                            document.cookie = 'user=' + loginData.mail + '; path=/; max-age=3600'
+                            navigate("/account");
+                        }
+                    }else{
+                        setLogRegErrInfo({...logRegErrInfo, log:"Неверный ящик или пароль"})
+                    }
+                })
+                .catch(setLogRegErrInfo({...logRegErrInfo, log:"Что-то пошло не так"}))
             }
         })
-        .catch(setLogRegErrInfo({...logRegErrInfo, log:"Что-то пошло не так"}))
     }
 
 
@@ -75,22 +83,27 @@ function LoginPage({SRVRADDRESS}){
     }, [logRegErrInfo])
     async function CheckSignUp(){
         if(signupData.mail != '' && signupData.password != ''){
-            var response = await axios.post(SRVRADDRESS, {oper:'user_exist',mail:signupData.mail});
-
-            if(response.data['exist'] == 0){
-                var mass_ans = await axios.post(SRVRADDRESS, {oper:'send_apply_mail',mail:signupData.mail});
-
-                if(mass_ans.data['ans'] == true){
-                    document.getElementById('sgn_prt').children[0].style.display = 'none'
-                    document.getElementById('sgn_prt').children[1].style.display = 'flex'
-                }else{
-                    setLogRegErrInfo({...logRegErrInfo, reg:'Что-то пошло не так, попробуйте ещё раз'})
+            ChengeMail(signupData.mail, 'reg')
+            .then(response => {
+                if(response.data['answer'] === '1'){
+                    setLogRegErrInfo({...logRegErrInfo, reg:'Неверный формат'})
                     setOperation('update')
+                }else if(response.data['answer'] === '2'){
+                    setLogRegErrInfo({...logRegErrInfo, reg:'Эта почта уже зарегистрирована'})
+                    setOperation('update')
+                }else if(response.data['answer'] === '3'){
+                    axios.post(SRVRADDRESS, {oper:'send_apply_mail',mail:signupData.mail})
+                    .then(mass_ans => {
+                        if(mass_ans.data['ans'] == true){
+                            document.getElementById('sgn_prt').children[0].style.display = 'none'
+                            document.getElementById('sgn_prt').children[1].style.display = 'flex'
+                        }else{
+                            setLogRegErrInfo({...logRegErrInfo, reg:'Что-то пошло не так, попробуйте ещё раз'})
+                            setOperation('update')
+                        }
+                    })
                 }
-            }else{
-                setLogRegErrInfo({...logRegErrInfo, reg:'Эта почта уже зарегистрирована'})
-                setOperation('update')
-            }
+            })
         }else{
             setLogRegErrInfo({...logRegErrInfo, reg:'Заполните все поля'})
             setOperation('update')
@@ -123,7 +136,7 @@ function LoginPage({SRVRADDRESS}){
 
     async function ChengeMail(value, operation){
         if(value !== ''){
-            var response = await axios.post(SRVRADDRESS, {oper:'check_correct_mail',mail:value});
+            var response = await axios.post(SRVRADDRESS, {oper:'check_correct_mail', mail:value, user_id:getCookie('user_id')});
 
             if(operation == 'log'){
                 var input = document.getElementById('login_mail')
@@ -138,6 +151,7 @@ function LoginPage({SRVRADDRESS}){
                     input.style.borderBottomColor = 'red';
                     setLogRegMiskInfo({...logRegMiskInfo, log:'Указанный почтовый ящик не зарегистрирован'})
                 }
+                return response
             }else{
                 var input = document.getElementById('signup_mail')
 
@@ -151,6 +165,7 @@ function LoginPage({SRVRADDRESS}){
                     input.style.borderBottomColor = 'green';
                     setLogRegMiskInfo({...logRegMiskInfo, reg:''})
                 }
+                return response
             }
         }else{
             if(operation == 'log'){
@@ -237,7 +252,7 @@ function LoginPage({SRVRADDRESS}){
                         <div>
                             <input
                                 value={signupData.mail}
-                                onChange={e => {setSignupData({...signupData, mail: e.target.value}); ChengeMail(e.target.value, 'reg')}}
+                                onChange={e => {setSignupData({...signupData, mail: e.target.value})}}
                                 type="text"
                                 className="log_reg_input"
                                 id="signup_mail"
@@ -287,7 +302,7 @@ function LoginPage({SRVRADDRESS}){
                         <div>
                             <input
                                 value={loginData.mail}
-                                onChange={e => {setLoginData({...loginData, mail:e.target.value}); ChengeMail(e.target.value, 'log')}}
+                                onChange={e => {setLoginData({...loginData, mail:e.target.value})}}
                                 className="log_reg_input"
                                 type="text"
                                 id="login_mail"

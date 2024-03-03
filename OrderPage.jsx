@@ -10,9 +10,10 @@ function OrderPage({prods, SRVRADDRESS, setCart}){
     const[peronalData, setPersonalData] = useState({surname:'', name:'', mail:'', phone:'', net:''});
     const[shippingData, setShippingData] = useState({cntr:'', town:'', strt:'', house:'', more:''});
     const[windowWidth, setWindowWidth] = useState(window.innerWidth)
-    const[orderNum, setOrderNum] = useState('')
+    const[orderNum, setOrderNum] = useState('');
+    const[orderProds, setOrderProds] = useState(prods)
+    const[total, setTotal] = useState(0);
     const[errMess, setErr] = useState('');
-    const[TotalPrice, setTotal] = useState(0)
 
     const check = [
         document.getElementById('sur'),
@@ -46,10 +47,17 @@ function OrderPage({prods, SRVRADDRESS, setCart}){
         ));
         return matches ? decodeURIComponent(matches[1]) : undefined;
     }
+    function ValidPhone(val) {
+        const re = /^(\s*)?(\+)?([- _():=+]?\d[- _():=+]?){10,14}(\s*)?$/;
+        if(re.test(val)){
+            return true;
+        }else{
+            return false;
+        }
+    }  
 
 
     function CheckInputs(){
-        console.log(check[3].value)
         const values = [
             check[0].value,
             check[1].value,
@@ -59,7 +67,7 @@ function OrderPage({prods, SRVRADDRESS, setCart}){
             check[5].value,
             check[6].value,
             check[7].value,
-            check[9].value,
+            check[8].value,
         ]
 
         if(values.includes('')){
@@ -74,6 +82,15 @@ function OrderPage({prods, SRVRADDRESS, setCart}){
 
             return
         }
+
+        if(!ValidPhone(values[4])){
+            check[4].style.borderBottomColor = 'red'
+            titles[4].style.color = 'red'
+            setErr('Неверный формат')
+            
+            return
+        }
+
         createOrder()
     }
     function madeItNormal(e){
@@ -128,7 +145,10 @@ function OrderPage({prods, SRVRADDRESS, setCart}){
             window.removeEventListener('resize', handleResize);
             document.removeEventListener('keypress', KeyPress);  
         }
-    }, [])    
+    }, [])
+    useEffect(() => {
+        setOrderProds(prods)
+    }, [prods])
 
     function KeyPress(e){
         if (e.key === 'Enter' || e.keyCode === 13) {
@@ -146,9 +166,13 @@ function OrderPage({prods, SRVRADDRESS, setCart}){
     }
 
 
-    function Total(prc){
-        if(prc != undefined){
-            setTotal(Number(TotalPrice) + Number(prc.replace(' ', '')))
+    function Total(prds){
+        if(prds != undefined){
+            let tot = 0
+            prds.forEach(item => {
+                tot += Number(item.price.replace(' ', ''))
+            });
+            return tot
         }
     }
 
@@ -159,12 +183,12 @@ function OrderPage({prods, SRVRADDRESS, setCart}){
         <>
         <div className="order_part" id="ord_p">
             <div className="order_cart_part">
-                {prods.map((prod) =>
-                    <OrderProd prod={prod} SRVRADDRESS={SRVRADDRESS} callCost={'yes'} outCost={Total}/>
+                {orderProds.map((prod) =>
+                    <OrderProd prod={prod} SRVRADDRESS={SRVRADDRESS}/>
                 )}
                 <div className="story_bot_part">
                     <div>Итого:</div>
-                    <div>{TotalPrice + '₽'}</div>
+                    <div>{Total(prods) + '₽'}</div>
                 </div>
             </div>
 

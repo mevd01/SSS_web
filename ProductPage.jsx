@@ -8,7 +8,7 @@ import ProdSizeItem from "../Parts/StackItems/ProdSizeItem";
 import Captcha from "../Parts/Captcha";
 
 function ProductPage({err, SRVRADDRESS, ...props}){
-    const[prod, setProd] = useState({id:1, name:'', brand:'', price:'', description:[]});
+    const[prod, setProd] = useState({id:1, name:'', brand:'', price:'', description:[], is_liked:false, src:''});
     const[windowWidth, setWindowWidth] = useState(window.innerWidth);
     const[sizeVars, setSizeVars] = useState([]);
     const[imgs, setImgs] = useState([]);
@@ -32,34 +32,41 @@ function ProductPage({err, SRVRADDRESS, ...props}){
     const paramValue = params.get('art');
 
     useEffect(() => {
-        async function requestProd(){
-            var response = await axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', id:paramValue});
-            if(response.data['answer'] == 1){
-                //('description':x 'brand':x,'price':x,'photo_id':x )
-                setProd({id:paramValue, name:response.data['name'], brand:response.data['brand'], price:response.data['price'], description:[...response.data['description']]})
-                setAvailPrice(response.data['price'])
-            }else{
-                return
-            }
+        function requestProd(){
+            axios.post(SRVRADDRESS, {oper:'get_item_info_by_id', ask_ids:[paramValue], mail:getCookie('user')})
+            .then(response => {
+                if(response.data['list'][0]['answer'] == 1){
+                    //('description':x 'brand':x,'price':x,'photo_id':x )
+                    setProd({id:paramValue, name:response.data['list'][0]['name'], brand:response.data['list'][0]['brand'], price:response.data['list'][0]['price'], description:[...response.data['list'][0]['description']], src:response.data['list'][0]['photo']})
+                    setAvailPrice(response.data['list'][0]['price'])
+                }else{
+                    return
+                }
+    
+                if(response.data['list'][0]['is_liked'] == true){
+                    setChecked('liked')
+                }else{
+                    setChecked('none_liked')
+                }
+            })
 
-            let photo_cnt = await axios.post(SRVRADDRESS, {oper:'get_cnt_photos_by_tov_id', id:paramValue})
-            setPh_cnt(photo_cnt.data['cnt'])
-            for(var i = 1; i <= photo_cnt.data['cnt']; ++i){
-                fetch(SRVRADDRESS, {
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ oper: 'get_photo_by_tov_id', id:paramValue, num:i})
-                })
-                .then(response => response.blob())
-                .then(blob => {
-                    setNextImg(URL.createObjectURL(blob))
-                });
-            }
 
-            var response = await axios.post(SRVRADDRESS, {oper:'get_sizes_by_id', id:paramValue});
-            setSizeVars(response.data['sizes'])
+            axios.post(SRVRADDRESS, {oper:'get_cnt_photos_by_tov_id', id:paramValue, mail:getCookie('user')})
+            .then(photo_cnt => {
+                setPh_cnt(photo_cnt.data['cnt'])
+                let imgArr = []
+                for(let i = 1; i <= photo_cnt.data['cnt']; ++i){
+                    axios.post(SRVRADDRESS, {oper: 'get_photo_by_tov_id', id:paramValue, num:i})
+                    .then(response => {
+                        imgArr.push(response.data['photo'])
+                        setImgs([...imgArr])
+                    })
+                }
+            })
+
+
+            axios.post(SRVRADDRESS, {oper:'get_sizes_by_id', id:paramValue, mail:getCookie('user')})
+            .then(sizes => setSizeVars(sizes.data['sizes']))
         }
 
         requestProd();
@@ -75,8 +82,16 @@ function ProductPage({err, SRVRADDRESS, ...props}){
 
 
     useEffect(() => {
+        if(/iPhone/.test(window.navigator.userAgent)){
+            document.getElementById('move_left').style.transform = 'rotate(180deg)'
+            document.getElementById('move_right').style.transform = 'rotate(0deg)'
+        }
+        axios.post(SRVRADDRESS, {oper:'clicked_tov_with_id', id:paramValue})
+
+
         document.getElementById('to_hide').scrollBy({top: -document.getElementById('to_hide').scrollTop, behavior : "smooth"});
         window.addEventListener('resize', handleResize);
+        document.getElementById('to_hide').addEventListener('scroll', handleScroll);
 
         function handleResize(){
             setWindowWidth(window.innerWidth);
@@ -98,6 +113,7 @@ function ProductPage({err, SRVRADDRESS, ...props}){
 
         return () => {
             window.removeEventListener('resize', handleResize);
+            document.getElementById('to_hide').removeEventListener('scroll', handleScroll);
         }
     }, [])
 
@@ -119,6 +135,16 @@ function ProductPage({err, SRVRADDRESS, ...props}){
         }
     }, [windowWidth]);
 
+    function handleScroll(){
+        if(document.getElementById('to_hide').scrollTop > 150){
+            document.getElementsByClassName('favorite_icon_in_page')[0].style.right = '-50px'
+            document.getElementsByClassName('back_to_cat_but')[0].style.left = '-50px'
+        }else{
+            document.getElementsByClassName('favorite_icon_in_page')[0].style.right = '10px'
+            document.getElementsByClassName('back_to_cat_but')[0].style.left = '10px'
+        }
+    }
+
 
 
 
@@ -130,24 +156,6 @@ function ProductPage({err, SRVRADDRESS, ...props}){
         return matches ? decodeURIComponent(matches[1]) : undefined;
     }
 
-    async function getFavorite(){
-        var response = await axios.post(SRVRADDRESS, {oper:'is_liked', id:paramValue, mail:getCookie('user')});
-        if(response.data['ans'] == true){
-            setChecked('liked')
-        }else{
-            setChecked('none_liked')
-        }
-    }
-    useEffect(() => {
-        if(getCookie('stat') == 'login'){
-            getFavorite()
-        }
-        if(/iPhone/.test(window.navigator.userAgent)){
-            document.getElementById('move_left').style.transform = 'rotate(180deg)'
-            document.getElementById('move_right').style.transform = 'rotate(0deg)'
-        }
-        axios.post(SRVRADDRESS, {oper:'clicked_tov_with_id', id:paramValue})
-    }, [])
 
     async function AddToFavorite(){
         if(getCookie('stat') == 'login'){
@@ -191,6 +199,7 @@ function ProductPage({err, SRVRADDRESS, ...props}){
         const count = getCookie('Upcount')
         if(count == undefined){
             document.cookie = 'Upcount=1; path=/; max-age=7200'
+            setUpdateStat('update')
         }else if(updateStatText !== 'Цены актуальны'){
             if(Number(count)%3 == 0){
                 AddCaptcha()
@@ -199,21 +208,20 @@ function ProductPage({err, SRVRADDRESS, ...props}){
                 setUpdateStat('update')
             }
         }
-        console.log(count)
     }
 
     useEffect(() => {
         if(updateStat === 'update' && updateStatText !== 'Цены актуальны'){
             setStatText('Это займёт не более минуты')
-            axios.post(SRVRADDRESS, {oper:'request_avail_size', tov_id:paramValue})
+            axios.post(SRVRADDRESS, {oper:'request_avail_size', tov_id:paramValue, mail:getCookie('user')})
             .then(yes => {
                 setUpdateStat('up1')
             })
         }else if(updateStat === 'up1'){
-            axios.post(SRVRADDRESS, {oper:'already_updated_tov', tov_id:paramValue})
+            axios.post(SRVRADDRESS, {oper:'already_updated_tov', tov_id:paramValue, mail:getCookie('user')})
             .then(ok => {
                 if(ok.data['ans'] === 1){
-                    axios.post(SRVRADDRESS, {oper:'get_sizes_by_id', id:paramValue})
+                    axios.post(SRVRADDRESS, {oper:'get_sizes_by_id', id:paramValue, mail:getCookie('user')})
                     .then(response => {
                         setSizeVars([])
                         setSizeVars(response.data['sizes'])
@@ -228,10 +236,10 @@ function ProductPage({err, SRVRADDRESS, ...props}){
                 }
             })
         }else if(updateStat === 'up2'){
-            axios.post(SRVRADDRESS, {oper:'already_updated_tov', tov_id:paramValue})
+            axios.post(SRVRADDRESS, {oper:'already_updated_tov', tov_id:paramValue, mail:getCookie('user')})
             .then(ok => {
                 if(ok.data['ans'] === 1){
-                    axios.post(SRVRADDRESS, {oper:'get_sizes_by_id', id:paramValue})
+                    axios.post(SRVRADDRESS, {oper:'get_sizes_by_id', id:paramValue, mail:getCookie('user')})
                     .then(response => {
                         setSizeVars(response.data['sizes'])
                         setUpdateStat('good')
@@ -254,8 +262,8 @@ function ProductPage({err, SRVRADDRESS, ...props}){
 
 
     function moveLeft(){
-        var element = document.getElementById('gal')
-        var elemPos = Number((element.style.left).replace('px', ''))
+        const element = document.getElementById('gal')
+        const elemPos = Number((element.style.left).replace('px', ''))
         if(0 < Math.abs(elemPos)){
             element.style.left = (elemPos + element.offsetWidth) + 'px';
         }else{
@@ -263,8 +271,8 @@ function ProductPage({err, SRVRADDRESS, ...props}){
         }
     }
     function moveRight(){
-        var element = document.getElementById('gal')
-        var elemPos = Number((element.style.left).replace('px', ''))
+        const element = document.getElementById('gal')
+        const elemPos = Number((element.style.left).replace('px', ''))
         if((element.children.length-1) * element.offsetWidth > Math.abs(elemPos)){
             element.style.left = (elemPos - element.offsetWidth) + 'px';
         }else{
@@ -272,14 +280,6 @@ function ProductPage({err, SRVRADDRESS, ...props}){
         }
     }
 
-    useEffect(() => {
-        async function getPrice(){
-            var response = await axios.post(SRVRADDRESS, {oper:'get_cost_by_id_and_size', id:paramValue, size:availSize});
-            setAvailPrice(response.data['cost'])
-        }
-
-        if(availSize != ''){getPrice()}
-    }, [availSize])
 
 
     function addToCart(){
@@ -290,7 +290,7 @@ function ProductPage({err, SRVRADDRESS, ...props}){
                     name: prod.name,
                     brand: prod.brand,
                     price: availPrice,
-                    imgsrc: prod.imgsrc,
+                    src: prod.src,
                     size: availSize,
                     quant: availQuant,
                     code: paramValue + availSize
@@ -322,7 +322,7 @@ function ProductPage({err, SRVRADDRESS, ...props}){
                 <div className="gallery_box">
                     <div className="gallery" id="gal">
                         {imgs.map((img_item) =>
-                            <img src={img_item}/>
+                            <img src={`data:image/png;base64,${img_item}`}/>
                         )}
                     </div>
                     <div className="control" id="control">
@@ -341,7 +341,7 @@ function ProductPage({err, SRVRADDRESS, ...props}){
                             <div className="size_part">
                                 {availPrice != 'Нет в наличии'
                                     ?sizeVars.map((sizeVar) =>
-                                        <ProdSizeItem size={sizeVar[0]} price={sizeVar[1]} set={setAvailSize}/>
+                                        <ProdSizeItem size={sizeVar[0]} price={sizeVar[1]} setSize={setAvailSize} setPrice={setAvailPrice}/>
                                     )
                                     :<h2>Отсутствуют</h2>
                                 }
