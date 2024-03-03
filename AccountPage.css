@@ -1,31 +1,117 @@
 .account{
-    margin: 50px 150px 220px;
-
-    display: flex;
-    justify-content: space-between;
+    overflow: hidden;
 }
+
+
 
 .account_info_box{
-    border-left: solid 1px black;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    max-width: 500px;
+    margin: 50px auto 50px;
 }
-.account_info_box > div{
-    width: 400px;
+.account_icon{
+    background-image: url(../img/svg/profile_black.svg);
+    background-size: cover;
+
+    margin-right: 10px;
+    width: 70px;
+    height: 70px;
+}
+.account_edit{
+    cursor: pointer;
+
+    margin: 0  7px;
+    width: 50px;
+    height: 50px;
+
+    position: relative;
+    top: 1px;
+}
+.opn{
+    background-image: url(../img/svg/close.svg);
+    background-size: 25px;
+}
+.cls{
+    background-image: url(../img/svg/edit.svg);
+    background-size: 25px;
+}
+.account_edit_info{
+    margin: 0 15px;
+
+    display: none;
+}
+.account_edit_info > *{
+    max-width: 470px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.account_edit_info > div{
+    display: flex;
+    flex-direction: column;
+
+    margin-bottom: 50px;
+}
+.account_edit_info > div > h2{
+    margin-bottom: 23px;
+}
+
+
+.net_input_part > div{
+    display: flex;
+}
+.white_slider{
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 15px;
+    max-width: 800px;
+
+    border-top: solid 1px black;
     border-bottom: solid 1px black;
 }
-.account > div > div{
-    margin: 0 20px 30px;
+.white_slider > div{
+    width: 130px;
+    margin: 5px 10px;
+    line-height: 35px;
 
-    font-size: 25px;
+    user-select: none;
+    cursor: pointer;
+    text-align: center;
 }
+.white_slider_active{
+    border-bottom: solid 1px black;
+}
+
+.slider_vars{
+    transition: 0.3s;
+    display: flex;
+    position: relative;
+    left: 0;
+}
+.slider_vars > div > input{
+    max-width: 470px;
+}
+
+
+#mail_input{
+    color: rgb(139, 139, 139);
+}
+
+
 
 .account_features{
-    border-right: solid 1px black;
-    text-align: right;
-
-    width: 40%;
-    height: 400px;
+    margin-left: 15px;
+    margin-right: 15px;
 }
-span{
-    margin-left: 20px;
-    font-size: 30px;
+.account_features > .white_slider{
+    margin-bottom: 0px !important;
+}
+.favor_part{
+    margin-left: -15px;
+}
+.slider_vars > div > h2{
+    text-align: center;
+    margin-top: 100px;
 }

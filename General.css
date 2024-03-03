@@ -36,6 +36,20 @@ a:-webkit-any-link {
 main{
     margin-top: 60px;
 }
+main::-webkit-scrollbar{
+    width: 0;
+}
+h2{
+    font-weight: 400;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+h1{
+    font-weight: 400;
+    font-size: 22px;
+
+    margin-bottom: 15px;
+}
 
 
 
@@ -85,29 +99,8 @@ header{
     width: 40px;
     height: 40px;
 }
-
-
-
-
-#to_top{
-    position: fixed;
-    bottom: -50px;
-    right: 25px;
-
-    height: 50px;
-    width: 50px;
-    border-radius: 50%;
-
-    background-color: black;
-    background-image: url(../img/svg/next_white.svg);
-    background-size: 23px;
-
-    color: white;
-    font-size: 28px;
-    transform: rotate(90deg);
-    cursor: pointer;
-    user-select: none;
-    transition: 0.2s;
+.disabled{
+    opacity: 0.4;
 }
 
 
@@ -115,11 +108,145 @@ header{
 
 
 
+
+
 footer{
+    overflow: hidden;
+}
+.footer_about{
+    display: flex;
+    flex-direction: column;
+}
+.footer_about > h1{
+    font-size: 35px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    width: 100%;
+}
+.footer_about > ul{
+    margin: 0 0 0 40px;
+}
+.footer_about > ul > li{
+    margin-bottom: 10px;
+}
+
+.social_part{
+    width: 100%;
+}
+.social_nets{
+    display: flex;
+    justify-content: space-between;
+
     margin-top: 30px;
-    text-align: center;
+    width: 72%;
 
-    line-height: 200px;
+    position: relative;
+    left: 20px;
+}
+.social_nets > a > div{
+    background-color: black;
+    border-radius: 50%;
+    transition: 0.4s;
 
-    background-color: brown;
+    width: 45px;
+    height: 45px;
+}
+.social_nets > a > div:hover{
+    opacity: 0.4;
+}
+.tg{
+    background-image: url(../img/icons/telegram.jpg);
+}
+.vk{
+    background-image: url(../img/svg/vkontakte.svg);
+}
+.inst{
+    background-image: url(../img/svg/instagram.svg);
+}
+.tt{
+    background-image: url(../img/svg/tiktok.svg);
+}
+
+.footer_about_img{
+    background-image: url(../img/png/____.png);
+
+    height: 200px;
+    width: 100%;
+}
+
+@media screen and (min-width: 1000px) {
+    .footer_about{
+        width: 600px;
+        margin: 100px auto 0;
+    }
+    .social_nets > a > div{
+        width: 60px;
+        height: 60px;
+    }
+    .tg{
+        background-size: 110px;
+        background-position: -27px;
+    }
+    .vk{
+        background-size: 57px;
+    }
+    .inst{
+        background-size: 36px;
+    }
+    .tt{
+        background-size: 32px;
+    }
+    .footer_about_img{
+        background-size: 580px;
+        background-position: -20px -50px;
+    }
+}
+@media screen and (min-width: 500px) and (max-width: 999px) {
+    .footer_about{
+        width: 415px;
+        margin: 100px auto 0;
+    }
+    .tg{
+        background-size: 80px;
+        background-position: -19px;
+    }
+    .vk{
+        background-size: 42px;
+    }
+    .inst{
+        background-size: 28px;
+    }
+    .tt{
+        background-size: 25px;
+    }
+    .footer_about_img{
+        background-size: 420px;
+        background-position: -20px -37px;
+    }
+}
+@media screen and (max-width: 499px) {
+    .footer_about{
+        width: 90%;
+        margin: 50px auto 0;
+    }
+    .footer_about > ul > li{
+        font-size: 16px;
+    }
+    .tg{
+        background-size: 80px;
+        background-position: -19px;
+    }
+    .vk{
+        background-size: 42px;
+    }
+    .inst{
+        background-size: 28px;
+    }
+    .tt{
+        background-size: 25px;
+    }
+    .footer_about_img{
+        background-size: 100%;
+        background-position: -15px -29px;
+    }
 }

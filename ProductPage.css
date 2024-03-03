@@ -1,15 +1,15 @@
-@media screen and (min-device-width: 980px) /* Desktop */ {
+@media screen and (min-width: 1000px) /* Desktop */ {
     .main_prod_part{
-        margin: 140px 300px 50px;
+        transition: 0.3s;
+        margin: 100px 10% 50px;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
     }
 
     .gallery_box{
-        border: solid 1px black;
-        width: 400px;
+        width: 100%;
         min-width: 400px;
-        height: 400px;
+        height: auto;
         overflow: hidden;
         user-select: none;
     }
@@ -25,9 +25,13 @@
         height: auto;
     }
 
+    .size_menu{
+        margin-top: 0 !important;
+    }
+
     .main_info_box{
-        text-align: right;
         margin-left: 40px;
+        margin-top: 50px;
     }
     .main_info_box > div{
         font-size: 30px;
@@ -35,23 +39,58 @@
     }
 
     .info_part{
-        margin: 0 300px 100px;
+        transition: 0.3s;
+        margin: 0 10% !important;
     }
 }
-   
-@media screen  and (max-device-width: 979px) and (min-device-width: 501px) /* Tablet */ {
-
-}
-   
-@media screen and (max-device-width: 500px) /* Mobile */ {
+@media screen and (min-width: 1200px) {
     .main_prod_part{
+        transition: 0.3s;
+        max-width: 1000px;
+        margin-top: 50px;
+        margin-left: auto;
+        margin-right: auto;
     }
+    .gallery_box{
+        width: 60%;
+    }
+    .main_info_box{
+        width: 40%;
+        margin-top: 60px;
+    }
+    .info_part{
+        transition: 0.3s;
+        margin: 0 20% !important;
+    }
+    .size_menu{
+        margin-top: 0 !important;
+    }
+}
+@media screen and (max-width: 1199px) and (min-width: 1001px) {
+    .main_prod_part{
+        transition: 0.3s;
+        margin: 80px 10% 0;
+    }
+    .main_info_box{
+        margin-top: 60px;
+    }
+    .info_part{
+        transition: 0.3s;
+        margin: 0 10% !important;
+    }
+}
 
+
+@media screen and (max-width: 1000px) /* Mobile */ {
     .gallery_box{
         width: 100%;
-        height: 400px;
+        height: auto;
+        min-height: 280px;
         overflow: hidden;
         user-select: none;
+
+        background-image: url(../img/svg/clock.svg);
+        background-size: 50px;
     }
     .gallery{
         display: flex;
@@ -66,7 +105,7 @@
     }
 
     .main_info_box{
-        margin: 0 15px;
+        margin: -20px 15px 0;
     }
     .price{
         margin: 0 0 20px;
@@ -75,47 +114,88 @@
 
 
     .info_part{
+        transition: 0.3s;
         margin: 20px 15px;
     }
 }
+@media screen and (max-width: 999px) and (min-width: 801px) {
+    .main_prod_part{
+        transition: 0.3s;
+        margin: 0 20%;
+    }
+    .info_part{
+        transition: 0.3s;
+        margin: 20px 20% !important;
+    }
+}
+@media screen and (max-width: 800px) and (min-width: 600px) {
+    .main_prod_part{
+        transition: 0.3s;
+        margin: 0 30px;
+    }
+    .info_part{
+        transition: 0.3s;
+        margin: 20px 45px !important;
+    }
+}
+
+
+
+
 .control{
     display: flex;
     justify-content: space-between;
 }
 .control > div{
-    border: solid 1px black;
-    background-color:lightslategrey;
+    background-image: url(../img/svg/next_black.svg);
+    background-size: 22px;
     cursor: pointer;
     
-    width: 20px;
-    line-height: 20px;
-    text-align: center;
+    width: 30px;
+    height: 30px;
+    margin: 0 7px;
 
     position: relative;
     bottom: 190px;
 }
-
-
-
-
-
-
-.buy_but{
-    margin-top: 10px;
-    text-align: center;
-    padding: 5px;
-    
+.control > .right{
+    transform: rotate(180deg);
+}
+.back_to_cat_but{
     cursor: pointer;
-    color: white;
-    background-color: black;
+    transition: 0.2s;
+    background-image: url(../img/svg/close.svg);
+    background-size: 30px;
+    width: 50px;
+    height: 50px;
+
+    position: absolute;
+    left: 10px;
+    top: 75px;
 }
 
 
 
 
 
+
+
+
+
+.main_info_box > .name{
+    font-size: 25px;
+    margin-bottom: 50px;
+}
 .info_part > div{
     margin: 50px 0 100px;
+}
+.info_part > div > h1{
+    font-size: 25px;
+}
+.prod_discript > p{
+    font-size: 20px;
+    margin-bottom: 15px;
+    max-width: 1000px;
 }
 
 
@@ -123,74 +203,102 @@
 .size_menu{
     transition: 0.3s;
     margin-top: 10px;
-    overflow: hidden;
 }
 .size_menu > .size_part{
     transition: 0.2s;
     position: relative;
+
+    display: grid;
+
+    margin-bottom: 10px;
+}
+.size_menu_head{
+    border-top: solid 1px black;
+    border-bottom: solid 1px black;
+
+    line-height: 32px;
+    padding-left: 15px;
+    margin-bottom: 15px;
+}
+.size_var > div{
+    border: solid 1px rgb(216, 216, 216);
     overflow: hidden;
-
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-
-}
-.size_menu > .menu_head{
-    background-color: black;
-    overflow: hidden;
-    z-index: 100;
-
-    padding: 3px 15px;
-    margin-bottom: 7px;
-
-    display: flex;
-    justify-content: space-between;
-}
-.menu_head > div{
-    color: white;
-}
-#avail_size{
-    font-size: 20px;
-}
-.anim{
-    transform: rotate(-90deg);
-}
-.size_var{
-    border: solid 1px black;
-    transition: 0.2s;
+    user-select: none;
+    transition: 0.3s;
     cursor: pointer;
     text-align: center;
 
-    line-height: 35px;
-    margin: 0 0 5px 5px;
-    width: 70px;
-    height: 70px;
+    width: 100%;
+    height: 60px;
 
     display: flex;
     flex-direction: column;
     align-items: center;
 }
-.size_var > div{
-    width: 100%;
+.size_var > div:hover{
+    border-color: black;
 }
 .size_var > input{
     display: none;
 }
-.size_var:hover{
-    background-color: rgb(150, 150, 180);
+.size_var > input:disabled + div{
+    opacity: 0.6;
 }
 .size_var > input:checked + div{
-    border: solid 3px black;
+    border: solid 1px rgb(0, 0, 0);
+    box-shadow: 0 0 5px rgb(83, 83, 83);
 }
 .size_var > div > .var_size{
-    font-size: 25px;
+    font-size: 21px;
     line-height: 30px;
-
-    margin: 5px 0 0;
+    padding: 2px 5px 0;
+    max-height: 30px;
+    overflow: hidden;
 }
 .size_var > div > .var_price{
     line-height: 25px;
     margin-bottom: 4px;
 
-    font-size: 16px;
+    font-size: 15px;
+}
+.inactive{
+    height: 20px;
+    width: 20px;
+    background-image: url(../img/svg/close.svg);
+    background-size: 15px;
+    background-position: 2.5px 5px;
+}
+
+
+.size_update{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 50px;
+}
+.size_update:hover > span{
+    transition: 0.3s;
+    border-bottom: solid 1px black;
+}
+.size_update > .up_icon{
+    background-image: url(../img/svg/update.svg);
+    background-size: 25px;
+
+    width: 40px;
+    height: 40px;
+}
+.update{
+    background-image: url(../img/svg/clock.svg) !important;
+    background-size: 18px !important;
+}
+.up1{
+    background-image: url(../img/svg/clock.svg) !important;
+    background-size: 18px !important;
+}
+.up2{
+    background-image: url(../img/svg/clock.svg) !important;
+    background-size: 18px !important;
+}
+.good{
+    background-image: url(../img/svg/tick.svg) !important;
 }

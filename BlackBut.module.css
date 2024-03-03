@@ -1,0 +1,20 @@
+.black_but{
+    user-select: none;
+    background-color: black;
+    border: solid 1px black;
+    transition: 0.2s;
+    color: white;
+    font-weight: 500;
+    font-size: 20px;
+    text-align: center;
+    line-height: 58px;
+    display: block !important;
+    cursor: pointer;
+}
+.black_but:hover{
+    background-color: white;
+    color: black;
+}
+.black_but:disabled{
+    opacity: 0.7;
+}

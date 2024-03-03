@@ -15,6 +15,7 @@
 
     font-size: 17px;
     text-align: center;
+    cursor: pointer;
 }
 .log_reg_chacked{
     border-bottom: solid 2px white;
@@ -34,31 +35,23 @@
 
 
 
-form > div{
-    margin: 30px 15px;
-    max-width: 700px;
+
+.signup_part > div, .signin_part > div{
+    margin: 60px auto 30px;
+    padding: 0 15px;
+    max-width: 600px;
 
     display: flex;
     flex-direction: column;
 }
-form > div > h2{
+.signup_part > div > h2, .signin_part > div > h2{
     font-weight: 400;
     font-size: 16px;
     margin-bottom: 30px;
 }
-form > div > div{
+.signup_part > div > div, .signin_part > div > div{
     display: flex;
     align-items: center;
-}
-.alert_radio{
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background-color: green;
-
-    position: relative;
-    top: 19px;
-    left: 10px;
 }
 .log_reg_input{
     line-height: 45px;
@@ -74,42 +67,84 @@ form > div > div{
 .log_reg_input:focus{
     border: solid 1px rgb(216, 216, 216);
 }
-.but{
-    margin-top: 40px;
-    line-height: 50px;
-
-    font-weight: 500;
-    text-align: center;
-    background-color: black;
-    border: none;
-    color: white;
+.log_reg_input::placeholder{
+    opacity: 0.8;
+}
+.misk_info_h2{
+    transition: 0.2s;
+    margin-bottom: 10px;
+    color: rgb(60, 60, 60);
+}
+.save_me_log_reg{
+    margin: 15px 10px 17px;
+}
+.save_me_log_reg > label > input{
+    margin-right: 12px;
+}
+#mss_prt{
+    margin-top: 120px;
+    display: none;
 }
 
 
 
 .captcha{
-    position: fixed;
-    top: 230px;
-    left: 35%;
+    display: block !important;
 
-    background-color: white;
-    border: 1px solid black;
+    margin: 40px 0;
 }
-.captcha > h1{
-    margin: 10px 10px;
+.cap_img_box{
+    margin: 0 auto;
+    max-width: 350px;
 }
-.captcha > div{
-    width: 400px;
-    margin: 10px 20px;
-}
-.captcha > div > img{
+.cap_img_box > *{
     width: 100%;
 }
-.captcha > div > button{
-    margin: 10px 20px 0;
-    width: 100%;
+.cap_but_box > input{
+    max-width: 250px;
+    flex-shrink: 2;
+}
+.cap_but_box > button{
+    width: 130px;
+    height: 47px;
+
+    cursor: pointer;
+    border: none;
+    color: white;
+    background-color: black;
+    flex-shrink: 0;
 }
 .cap_but_box{
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 400px;
+}
+.cap_but_box > button{
+    font-size: 16px;
+    font-weight: 500;
+}
+
+
+.log_reg_err{
+    margin-top: 12px;
+    color: red;
+    font-size: 23px;
+}
+.cap_err{
+    margin: -40px auto 0;
+    color: red;
+    font-size: 23px !important;
+}
+
+
+
+.update_pass{
+    margin: 40px auto;
+    display: block;
+    color: rgb(60, 60, 60);
+    cursor: pointer;
+}
+.update_pass:hover{
+    border-bottom: solid 1px black;
 }
